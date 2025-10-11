@@ -1,10 +1,29 @@
-HELP.md
+# ============================================================
+# 1️⃣ Maven / Gradle 빌드 결과물 제외
+# ============================================================
+# target/      : Maven 기본 빌드 산출물 폴더
+# build/       : Gradle 기본 빌드 산출물 폴더
+# !**/src/main/**/target/ : 소스 폴더 안의 target 폴더는 제외하지 않음 (예: 테스트용)
+# !**/src/test/**/target/ : 테스트 소스 폴더 안 target 제외하지 않음
+# !**/src/main/**/build/  : Gradle 빌드 산출물 중 소스 안 빌드 폴더 제외하지 않음
+# !**/src/test/**/build/  : 테스트 소스 안 빌드 폴더 제외하지 않음
 target/
-.mvn/wrapper/maven-wrapper.jar
+build/
 !**/src/main/**/target/
 !**/src/test/**/target/
+!**/src/main/**/build/
+!**/src/test/**/build/
 
-### STS ###
+# ============================================================
+# 2️⃣ STS / Eclipse 관련 설정 파일 제외
+# ============================================================
+# .apt_generated : Eclipse에서 자동 생성되는 APT 관련 파일
+# .classpath      : Eclipse 빌드 경로 정보
+# .factorypath    : Eclipse Annotation Processor 관련 파일
+# .project        : Eclipse 프로젝트 메타 정보
+# .settings       : Eclipse 프로젝트 설정 폴더
+# .springBeans    : Spring Tools에서 생성되는 설정
+# .sts4-cache     : STS 캐시
 .apt_generated
 .classpath
 .factorypath
@@ -13,21 +32,50 @@ target/
 .springBeans
 .sts4-cache
 
-### IntelliJ IDEA ###
+# ============================================================
+# 3️⃣ IntelliJ IDEA 관련 설정 파일 제외
+# ============================================================
+# .idea : IntelliJ 프로젝트 설정 폴더
+# *.iws : IntelliJ Workspace 파일
+# *.iml : IntelliJ Module 파일
+# *.ipr : IntelliJ Project 파일
 .idea
 *.iws
 *.iml
 *.ipr
 
-### NetBeans ###
+# ============================================================
+# 4️⃣ NetBeans 관련 설정 파일 제외
+# ============================================================
+# /nbproject/private/ : 개인 환경 설정
+# /nbbuild/           : 빌드 산출물
+# /dist/              : 배포 산출물
+# /nbdist/            : 배포 산출물
+# /.nb-gradle/        : NetBeans Gradle 캐시
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
 
-### VS Code ###
-.vscode/
+# ============================================================
+# 5️⃣ VS Code 관련 설정 파일 제외
+# ============================================================
+# .vscode : VS Code 프로젝트 설정 폴더
+.vscode
+
+# ============================================================
+# 6️⃣ OS 및 기타 임시 파일 제외
+# ============================================================
+# *.log       : 로그 파일
+# .DS_Store   : macOS에서 생성되는 폴더 설정 파일
+# Thumbs.db   : Windows에서 생성되는 썸네일 캐시
+*.log
+.DS_Store
+Thumbs.db
+
+# ============================================================
+# 7️⃣ Maven Wrapper 제외
+# ============================================================
+# .mvn/wrapper/maven-wrapper.jar : Maven Wrapper 실행 파일 (업로드 선택 사항)
+.mvn/wrapper/maven-wrapper.jar
