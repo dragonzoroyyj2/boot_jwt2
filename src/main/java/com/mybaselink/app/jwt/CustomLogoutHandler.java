@@ -13,8 +13,8 @@ import java.util.Optional;
 /**
  * 🚪 CustomLogoutHandler
  *
- * ✅ 로그아웃 시 JWT 토큰을 DB에서 "비활성화(revoked=true)" 처리
- * ✅ 세션 종료 외에도 JWT 토큰을 무효화하여 재사용 방지
+ * ✅ 로그아웃 시 JWT 토큰을 DB에서 "revoked=true" 처리
+ * ✅ 세션 종료 외에도 JWT 토큰 재사용 방지
  */
 @Component
 public class CustomLogoutHandler implements LogoutHandler {
@@ -34,13 +34,13 @@ public class CustomLogoutHandler implements LogoutHandler {
         String token = jwtUtil.resolveToken(request);
         if (token == null) return;
 
-        // 2️⃣ DB에 저장된 해당 토큰을 조회
-        Optional<JwtTokenEntity> tokenEntityOpt = jwtTokenRepository.findByToken(token);
+        // 2️⃣ DB에서 해당 토큰 조회 (Optional 기반)
+        Optional<JwtTokenEntity> tokenOpt = jwtTokenRepository.findByToken(token);
 
-        // 3️⃣ 토큰이 존재하면 revoked = true 로 업데이트
-        tokenEntityOpt.ifPresent(entity -> {
-            entity.setRevoked(true);
-            jwtTokenRepository.save(entity);
+        // 3️⃣ 토큰이 존재하면 무효화
+        tokenOpt.ifPresent(jwt -> {
+            jwt.setRevoked(true);
+            jwtTokenRepository.save(jwt);
         });
     }
 }

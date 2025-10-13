@@ -26,10 +26,10 @@
        페이지 타이틀 통일감 & 간격 조정
     =============================================== */
     h2 {
-      margin-top: 0;          
-      margin-bottom: 0.6rem;  
-      font-size: 1.2rem;      
-      line-height: 1.3;       
+      margin-top: 0;
+      margin-bottom: 0.6rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
       font-weight: 600;
       color: #111827;
     }
@@ -39,13 +39,13 @@
       width: 100%;
       max-width: 1600px;
       margin: 0 auto;
-      margin-top: 0.3rem;  /* 상단 간격 조정 */
+      margin-top: 0.3rem;
       padding: 1rem 2%;
       box-sizing: border-box;
     }
 
     /* ===============================================
-       ✅ 검색 라인 (한줄 + 자동조정)
+       검색 라인
     =============================================== */
     .toolbar {
       display: flex;
@@ -148,13 +148,8 @@
       background: #1d6f42;
       border: 1px solid #145a32;
     }
-    .btn.excel:hover {
-      background: #145a32;
-    }
-    .btn.excel i {
-      color: #fff;
-      font-size: 1rem;
-    }
+    .btn.excel:hover { background: #145a32; }
+    .btn.excel i { color: #fff; font-size: 1rem; }
 
     /* ===============================================
        테이블
@@ -183,27 +178,29 @@
     th { background: #f9fafb; font-weight: 600; color: #374151; }
     td a { color: #2563eb; cursor: pointer; text-decoration: underline; }
 
-    /* ===============================================
-       페이징
-    =============================================== */
-    .pagination {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      margin-top: 0.8rem;
-      gap: 4px;
-      overflow-x: auto;
-    }
+	/* ===============================================
+	   페이징 - 버튼 크기 조정 & 2줄 방지
+	=============================================== */
+	.pagination {
+	  display: flex;
+	  justify-content: center;
+	  align-items: center;
+	  margin-top: 0.8rem;
+	  gap: 2px;          /* 버튼 간격 줄임 */
+	  flex-wrap: nowrap;  /* 줄 바꿈 방지 */
+	  overflow-x: auto;   /* 화면 좁으면 스크롤만 생김 */
+	}
+	
+	.pagination button {
+	  border: 1px solid #d1d5db;
+	  background: white;
+	  border-radius: 6px;
+	  padding: 2px 6px;  /* 패딩 줄여 버튼 폭 감소 */
+	  font-size: 0.75rem; /* 폰트 작게 */
+	  cursor: pointer;
+	  min-width: auto;   /* 최소폭 자동 조정 */
+	}
 
-    .pagination button {
-      border: 1px solid #d1d5db;
-      background: white;
-      border-radius: 6px;
-      padding: 4px 8px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
 
     .pagination button.active {
       background: #2563eb;
@@ -233,9 +230,9 @@
       width: 90%;
       max-width: 480px;
       margin: 3rem auto;
-      max-height: 80vh;
+      max-height: 80vh; /* 화면높이에 맞춰 최대 높이 지정 */
       animation: fadeInUp 0.25s ease;
-      overflow: hidden;
+      overflow-y: auto; /* 내용이 많으면 스크롤 */
     }
 
     @keyframes fadeInUp {
@@ -337,33 +334,12 @@
        모바일 대응
     ================================ */
     @media (max-width: 768px) {
-      .content-container {
-        margin-top: 0.2rem;
-        padding: 0.5rem 1%;
-      }
-
-      h2 {
-        font-size: 1rem;
-        margin-bottom: 0.4rem;
-      }
-
-      .toolbar {
-        margin-bottom: 0.4rem;
-      }
-
-      .list-info {
-        margin-bottom: 0.3rem;
-      }
-
-      .search-group input {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.6rem;
-      }
-
-      .search-group .btn {
-        height: 32px;
-        min-width: 34px;
-      }
+      .content-container { margin-top: 0.2rem; padding: 0.5rem 1%; }
+      h2 { font-size: 1rem; margin-bottom: 0.4rem; }
+      .toolbar { margin-bottom: 0.4rem; }
+      .list-info { margin-bottom: 0.3rem; }
+      .search-group input { font-size: 0.85rem; padding: 0.4rem 0.6rem; }
+      .search-group .btn { height: 32px; min-width: 34px; }
     }
   </style>
 </head>
@@ -373,7 +349,7 @@
   <div class="content-container">
     <h2>P01A04 서버 리스트</h2>
 
-    <!-- ✅ 검색 라인 -->
+    <!-- 검색 라인 -->
     <div class="toolbar">
       <div class="search-group">
         <input type="text" id="searchInput" placeholder="검색어 입력" />
@@ -383,7 +359,7 @@
       </div>
     </div>
 
-    <!-- ✅ 총건 + 기능 버튼 -->
+    <!-- 총건 + 기능 버튼 -->
     <div class="list-info">
       <span id="totalCount">총 0건</span>
       <div class="action-buttons">
@@ -393,7 +369,7 @@
       </div>
     </div>
 
-    <!-- ✅ 테이블 -->
+    <!-- 테이블 -->
     <div class="table-container">
       <table>
         <thead>
@@ -409,10 +385,11 @@
       </table>
     </div>
 
+    <!-- 페이징 -->
     <div id="pagination" class="pagination"></div>
   </div>
 
-  <!-- ➕ 등록 모달 -->
+  <!-- 등록 모달 -->
   <div id="addModal" class="modal">
     <div class="elegant-modal">
       <div class="elegant-header">
@@ -447,7 +424,7 @@
     </div>
   </div>
 
-  <!-- 🔍 상세 / 수정 모달 -->
+  <!-- 상세 / 수정 모달 -->
   <div id="detailModal" class="modal">
     <div class="elegant-modal">
       <div class="elegant-header">
@@ -478,11 +455,28 @@
   </div>
 </div>
 
-<!-- ✅ 페이지별 스크립트 -->
+<!-- 페이지별 스크립트 -->
 <th:block layout:fragment="pageScript">
   <script src="/js/commonUnifiedList.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+
+      // ================================
+      // 화면 폭 기반 페이지 그룹 사이즈 계산
+      // ================================
+      function getPageGroupSize() {
+        const width = window.innerWidth;
+        if (width < 480) return 3; //3
+        if (width < 768) return 30; //5
+        if (width < 1024) return 50; //7
+        return 10;
+      }
+
+      let pageGroupSize = getPageGroupSize();
+
+      // ================================
+      // 공용 리스트 초기화
+      // ================================
       initUnifiedList({
         mode: "p01a04",
         apiUrl: "/api/p01a04",
@@ -510,16 +504,40 @@
           { key: "title", label: "제목", isDetailLink: true },
           { key: "owner", label: "담당자" },
           { key: "regDate", label: "등록일" }
-        ]
+        ],
+        pageSize: 10,
+        pageGroupSize: pageGroupSize
       });
 
-      document.getElementById("searchInput").addEventListener("keydown", e => {
-        if (e.key === "Enter") document.getElementById("searchBtn").click();
+      // ================================
+      // 검색 엔터 이벤트
+      // ================================
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      searchInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") searchBtn.click();
       });
 
+      // ================================
+      // 총건수 업데이트 이벤트
+      // ================================
       document.addEventListener("totalCountUpdated", e => {
-        document.getElementById("totalCount").textContent = `총 ${e.detail.count}건`;
+        const totalCountEl = document.getElementById("totalCount");
+        if (totalCountEl) totalCountEl.textContent = `총 ${e.detail.count}건`;
       });
+
+      // ================================
+      // 화면 리사이즈 시 페이지 그룹 재조정
+      // ================================
+      window.addEventListener("resize", () => {
+        const newGroupSize = getPageGroupSize();
+        if (newGroupSize !== pageGroupSize) {
+          pageGroupSize = newGroupSize;
+          const event = new Event("resizePagination");
+          document.dispatchEvent(event);
+        }
+      });
+
     });
   </script>
 </th:block>

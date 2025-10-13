@@ -22,17 +22,24 @@
       color: #111827;
     }
 
+    /* ===============================================
+       페이지 타이틀 통일감 & 간격 조정
+    =============================================== */
     h2 {
-      margin-bottom: 1rem;
-      font-size: 1.3rem;
-      color: #111827;
+      margin-top: 0;          
+      margin-bottom: 0.6rem;  
+      font-size: 1.2rem;      
+      line-height: 1.3;       
       font-weight: 600;
+      color: #111827;
     }
 
+    /* 컨텐츠 전체 레이아웃 */
     .content-container {
       width: 100%;
       max-width: 1600px;
       margin: 0 auto;
+      margin-top: 0.3rem;  /* 상단 간격 조정 */
       padding: 1rem 2%;
       box-sizing: border-box;
     }
@@ -44,7 +51,7 @@
       display: flex;
       justify-content: flex-start;
       align-items: center;
-      margin-bottom: 0.8rem;
+      margin-bottom: 0.5rem;
     }
 
     .search-group {
@@ -93,20 +100,6 @@
       background: #1e40af;
     }
 
-    @media (max-width: 768px) {
-      .search-group {
-        max-width: 100%;
-      }
-      .search-group input {
-        font-size: 0.85rem;
-        padding: 0.4rem 0.6rem;
-      }
-      .search-group .btn {
-        height: 32px;
-        min-width: 34px;
-      }
-    }
-
     /* ===============================================
        총건수 + 기능 버튼 라인
     =============================================== */
@@ -116,7 +109,7 @@
       align-items: center;
       color: #4b5563;
       font-size: 0.9rem;
-      margin-bottom: 0.5rem;
+      margin-bottom: 0.4rem;
     }
 
     .action-buttons {
@@ -151,20 +144,17 @@
     .btn.red:hover { background: #b91c1c; }
     .btn.gray { background: #6b7280; }
 
-
-	.btn.excel {
-	  background: #1d6f42;
-	  border: 1px solid #145a32;
-	}
-	.btn.excel:hover {
-	  background: #145a32;
-	}
-	.btn.excel i {
-	  color: #fff;
-	  font-size: 1rem;
-	}
-
-
+    .btn.excel {
+      background: #1d6f42;
+      border: 1px solid #145a32;
+    }
+    .btn.excel:hover {
+      background: #145a32;
+    }
+    .btn.excel i {
+      color: #fff;
+      font-size: 1rem;
+    }
 
     /* ===============================================
        테이블
@@ -342,6 +332,39 @@
       justify-content: flex-end;
       gap: 0.6rem;
     }
+
+    /* ================================
+       모바일 대응
+    ================================ */
+    @media (max-width: 768px) {
+      .content-container {
+        margin-top: 0.2rem;
+        padding: 0.5rem 1%;
+      }
+
+      h2 {
+        font-size: 1rem;
+        margin-bottom: 0.4rem;
+      }
+
+      .toolbar {
+        margin-bottom: 0.4rem;
+      }
+
+      .list-info {
+        margin-bottom: 0.3rem;
+      }
+
+      .search-group input {
+        font-size: 0.85rem;
+        padding: 0.4rem 0.6rem;
+      }
+
+      .search-group .btn {
+        height: 32px;
+        min-width: 34px;
+      }
+    }
   </style>
 </head>
 
@@ -355,16 +378,8 @@
       <div class="search-group">
         <input type="text" id="searchInput" placeholder="검색어 입력" />
         <button id="searchBtn" class="btn"><i class="fas fa-search"></i></button>
-        
         <button class="btn"><i class="fas fa-filter"></i></button>
         <button class="btn"><i class="fas fa-sync-alt"></i></button>
-        
-        <!-- 필요 시 아래처럼 버튼 추가 -->
-        <!--
-        <button class="btn"><i class="fas fa-filter"></i></button>
-        <button class="btn"><i class="fas fa-sync-alt"></i></button>
-        <button class="btn"><i class="fas fa-gear"></i></button>
-         -->
       </div>
     </div>
 
@@ -372,11 +387,9 @@
     <div class="list-info">
       <span id="totalCount">총 0건</span>
       <div class="action-buttons">
-      	<button id="excelBtn" class="btn excel" title="엑셀 다운로드"><i class="fa-solid fa-file-excel"></i></button>
+        <button id="excelBtn" class="btn excel" title="엑셀 다운로드"><i class="fa-solid fa-file-excel"></i></button>
         <button id="addBtn" class="btn" title="추가"><i class="fas fa-plus"></i></button>
         <button id="deleteSelectedBtn" class="btn red" title="삭제"><i class="fas fa-trash"></i></button>
-        
-        
       </div>
     </div>
 

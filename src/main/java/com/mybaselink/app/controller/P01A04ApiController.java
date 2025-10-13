@@ -52,7 +52,7 @@ public class P01A04ApiController {
 
     public P01A04ApiController() {
         // 더미 데이터 생성
-        for (int i = 1; i <= 100; i++) {
+        for (int i = 1; i <= 600; i++) {
             Map<String, Object> item = new HashMap<>();
             item.put("id", i);
             item.put("title", "보고서 " + i);
