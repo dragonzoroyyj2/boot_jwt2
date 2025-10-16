@@ -186,3 +186,14 @@ private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\P
 
 아래는 KRX 코드 기반 YFinance 심볼로 수정된 find_similar_full.py 전체 버전입니다.
 주석을 최대한 친절하게 달아서, 각 단계에서 무슨 일이 일어나는지 이해하기 쉽게 만들었습니다.
+
+
+
+Python stderr:
+HTTP Error 404: {"quoteSummary":{"result":null,"error":{"code":"Not Found","description":"Quote not found for symbol: 케이엔알시스템"}}}
+
+[*********************100%***********************]  1 of 1 completed
+
+1 Failed download:
+['케이엔알시스템']: YFTzMissingError('possibly delisted; no timezone found')
+
