@@ -77,3 +77,17 @@ krx_list_full.json 파일 생성 완료
 
 
 정상적으로 JSON 파일이 생성되어야 합니다.
+
+----------------
+설명:
+
+--upgrade pip → pip 최신화
+
+scipy → DTW 계산에 필요
+
+fastdtw → 빠른 DTW 계산
+
+pandas → CSV 처리
+
+& "C:\Users\User\AppData\Local\Programs\Python\Python310\python.exe" -m pip install --upgrade pip
+& "C:\Users\User\AppData\Local\Programs\Python\Python310\python.exe" -m pip install scipy fastdtw pandas FinanceDataReader
