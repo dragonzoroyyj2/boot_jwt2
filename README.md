@@ -91,3 +91,92 @@ pandas → CSV 처리
 
 & "C:\Users\User\AppData\Local\Programs\Python\Python310\python.exe" -m pip install --upgrade pip
 & "C:\Users\User\AppData\Local\Programs\Python\Python310\python.exe" -m pip install scipy fastdtw pandas FinanceDataReader
+
+
+
+
+
+
+
+
+-----------------
+10 - 17
+
+dragonzoroyj04 시작
+pip install pandas numpy yfinance openpyxl
+
+
+2️⃣ 타종목 다운로드
+
+한국거래소(KRX) 또는 Yahoo Finance API 활용 가능
+
+예를 들어 Yahoo Finance는 Python yfinance로 쉽게 다운로드 가능
+
+CSV 파일명 = 종목명.csv (케이엔알시스템.csv, 삼성전자.csv 등)
+
+
+
+
+그러면 목표는 KRX 상장 전체 종목 데이터를 자동으로 다운로드하고, 기준 종목과 비교해서 유사도 계산 후 JSON 반환하는 Python 스크립트입니다.
+
+아래는 전체 통합 버전 초안입니다. 주요 포인트는:
+
+기준 종목 CSV 없으면 자동 다운로드
+
+타 종목 CSV 없으면 자동 다운로드 (KRX 전체 종목 대상)
+
+시작일~종료일 기준 Close 가격 사용
+
+Pandas + yfinance로 다운로드
+
+코사인 유사도 계산 후 JSON 출력
+
+--->>>
+
+
+KRX 전체 종목 분석을 빠르게 수행할 수 있도록 멀티스레딩을 적용한 Python 스크립트 버전을 만들어드리겠습니다.
+
+이 버전 특징:
+
+기준 종목 CSV 다운로드/로드
+
+KRX 전체 종목 리스트 조회
+
+각 종목의 CSV 다운로드 및 Close 기준 정규화
+
+코사인 유사도 계산
+
+ThreadPoolExecutor로 병렬 처리 → 다운로드/계산 속도 개선
+
+데이터 부족 시 자동 제외
+
+----------------------------------------------------------
+정말 로그아웃하시겠습니까?
+
+ChatGPT에서 dragonzoroyj2@gmail.com 계정을 로그아웃하시겠습니까?
+
+
+
+private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
+    private final String scriptPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\find_similar_full.py";
+    
+
+
+/MyBaseLink/src/main/java/com/mybaselink/app/service/SimilarStockAdvancedService.java
+
+/MyBaseLink/src/main/java/com/mybaselink/app/controller/SimilarStockAdvancedController.java
+
+
+/MyBaseLink/src/main/resources/templates/pages/stock/similar-advanced.html
+
+/MyBaseLink/python/find_similar_full.py
+
+/MyBaseLink/python/data
+
+내구조는 이러하다 절대 바꾸지마
+
+내가 하고싶은거는 실제 케이엔알시스템 종목의 시작일과 종료일 에 일봉 테이터로 타종목의 유사한 차트 종목을 찾고싶은거야
+
+그래서 타종목을 /MyBaseLink/python/data 여기에 csv 파일로 여러종목을 저장하고
+
+ 유사정보를 가져와서 화면에 정보를 보여주는거야 
