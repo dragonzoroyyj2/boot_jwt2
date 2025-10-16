@@ -180,3 +180,9 @@ private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\P
 그래서 타종목을 /MyBaseLink/python/data 여기에 csv 파일로 여러종목을 저장하고
 
  유사정보를 가져와서 화면에 정보를 보여주는거야 
+
+
+
+
+아래는 KRX 코드 기반 YFinance 심볼로 수정된 find_similar_full.py 전체 버전입니다.
+주석을 최대한 친절하게 달아서, 각 단계에서 무슨 일이 일어나는지 이해하기 쉽게 만들었습니다.
