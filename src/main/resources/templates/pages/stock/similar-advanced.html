@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout/default_layout}">
+
+<head>
+  <meta charset="UTF-8">
+  <title>유사 차트 종목 분석</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: "Noto Sans KR", Arial, sans-serif;
+      background-color: #f9fafb;
+      color: #1f2937;
+      margin: 0;
+      padding: 0;
+    }
+
+    .content-container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    h2 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 1rem;
+    }
+
+    .search-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.7rem;
+      align-items: center;
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    input, button {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      border: 1px solid #d1d5db;
+    }
+
+    input {
+      flex: 1;
+      min-width: 150px;
+    }
+
+    button {
+      background-color: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s ease;
+    }
+
+    button:hover {
+      background-color: #1e40af;
+    }
+
+    table {
+      width: 100%;
+      margin-top: 1.5rem;
+      border-collapse: collapse;
+      background-color: white;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 0.8rem 1rem;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background-color: #f3f4f6;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background-color: #f9fafb;
+    }
+
+    .loading {
+      display: none;
+      margin-top: 1rem;
+      text-align: center;
+      font-size: 0.9rem;
+      color: #2563eb;
+    }
+
+    .loading.active {
+      display: block;
+    }
+
+    .warning {
+      margin-top: 1rem;
+      color: red;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+
+<body>
+<div layout:fragment="content">
+  <div class="content-container">
+    <h2>📊 유사 차트 종목 분석</h2>
+
+    <!-- 검색/분석 영역 -->
+    <div class="search-area">
+      <input type="text" id="company" placeholder="기준 종목명 (예: 케이엔알시스템)" value="케이엔알시스템">
+      <input type="date" id="start" value="2024-03-07">
+      <input type="date" id="end" value="2024-12-09">
+      <button id="searchBtn"><i class="fa-solid fa-magnifying-glass"></i> 분석 시작</button>
+    </div>
+
+    <!-- 로딩/경고 메시지 -->
+    <div class="loading" id="loading">🔍 분석 중입니다... 잠시만 기다려주세요.</div>
+    <div class="warning" id="warning"></div>
+
+    <!-- 결과 테이블 -->
+    <table id="resultTable">
+      <thead>
+        <tr>
+          <th>종목명</th>
+          <th>유사도 점수</th>
+          <th>비교기간 (일수)</th>
+          <th>데이터 포인트</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<th:block layout:fragment="pageScript">
+<script>
+document.getElementById("searchBtn").addEventListener("click", () => {
+  const company = document.getElementById("company").value.trim();
+  const start = document.getElementById("start").value;
+  const end = document.getElementById("end").value;
+  const loading = document.getElementById("loading");
+  const warning = document.getElementById("warning");
+  const tbody = document.querySelector("#resultTable tbody");
+
+  if (!company || !start || !end) {
+    alert("종목명, 시작일, 종료일을 모두 입력해주세요.");
+    return;
+  }
+
+  tbody.innerHTML = "";
+  warning.textContent = "";
+  loading.classList.add("active");
+
+  fetch(`/api/krx/similar-advanced?company=${encodeURIComponent(company)}&start=${start}&end=${end}`)
+    .then(res => res.json())
+    .then(data => {
+      loading.classList.remove("active");
+
+      if (!data || typeof data !== 'object') {
+        alert("결과 데이터 형식이 올바르지 않습니다.");
+        return;
+      }
+
+      // warning 메시지 표시
+      if (data.warning) {
+        warning.textContent = "⚠ " + data.warning;
+      }
+
+      // 결과 테이블 채우기
+      if (Array.isArray(data.results)) {
+        data.results.forEach(item => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${item.file || '-'}</td>
+            <td>${item.similarity !== undefined ? item.similarity.toFixed(4) : '-'}</td>
+            <td>${item.dates ? item.dates.length : '-'}</td>
+            <td>${item.prices ? item.prices.length : '-'}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    })
+    .catch(err => {
+      loading.classList.remove("active");
+      warning.textContent = "⚠ 데이터 분석 중 오류가 발생했습니다.";
+      console.error(err);
+    });
+});
+</script>
+</th:block>
+</body>
+</html>
