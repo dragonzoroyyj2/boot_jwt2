@@ -36,8 +36,24 @@
       box-sizing: border-box;
     }
 
-    button#fetchBtn {
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.5rem;
       margin-bottom: 1rem;
+    }
+
+    input#searchInput {
+      flex: 1;
+      min-width: 220px;
+      padding: 0.5rem 0.8rem;
+      border: 1px solid #d1d5db;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    button#fetchBtn {
       padding: 0.5rem 1rem;
       font-size: 0.9rem;
       background-color: #3b82f6;
@@ -45,6 +61,7 @@
       border: none;
       border-radius: 5px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     button#fetchBtn:hover {
@@ -105,7 +122,10 @@
     <h2>📊 KRX 상장 종목 리스트</h2>
     <p>총 <span id="totalCount">0</span>개 종목</p>
 
-    <button id="fetchBtn">KRX 조회</button>
+    <div class="toolbar">
+      <input type="text" id="searchInput" placeholder="회사명으로 검색... (예: 삼성전자)">
+      <button id="fetchBtn"><i class="fa-solid fa-rotate"></i> KRX 조회</button>
+    </div>
 
     <table>
       <thead>
@@ -129,38 +149,46 @@
 
 <th:block layout:fragment="pageScript">
   <script>
+    let allData = []; // 전체 데이터 저장용
+
+    // ✅ 테이블 렌더링 함수
+    function renderTable(data) {
+      const tbody = document.getElementById("krxTableBody");
+      const total = document.getElementById("totalCount");
+      tbody.innerHTML = "";
+      total.textContent = data.length;
+
+      data.forEach(item => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td data-label="종목코드">${item.code || ''}</td>
+          <td data-label="회사명">${item.name || ''}</td>
+          <td data-label="상장일">${item.listedDate || ''}</td>
+          <td data-label="업종">${item.sector || ''}</td>
+          <td data-label="주요제품">${item.product || ''}</td>
+          <td data-label="대표자">${item.ceo || ''}</td>
+          <td data-label="지역">${item.region || ''}</td>
+          <td data-label="홈페이지">
+            <a href="${item.website || '#'}" target="_blank">${item.website || ''}</a>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // ✅ KRX 조회 버튼 클릭 시 서버 호출
     document.getElementById("fetchBtn").addEventListener("click", () => {
       const btn = document.getElementById("fetchBtn");
       btn.disabled = true;
-      btn.textContent = "조회 중...";
+      btn.innerHTML = "<i class='fa-solid fa-spinner fa-spin'></i> 조회 중...";
 
-      fetch("/api/krx")  // StockController에서 Python 결과 JSON 반환
+      fetch("/api/krx")
         .then(res => res.json())
         .then(data => {
-          const tbody = document.getElementById("krxTableBody");
-          const total = document.getElementById("totalCount");
-          tbody.innerHTML = "";
-          total.textContent = data.length;
-
-          data.forEach(item => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-              <td data-label="종목코드">${item.code || ''}</td>
-              <td data-label="회사명">${item.name || ''}</td>
-              <td data-label="상장일">${item.listedDate || ''}</td>
-              <td data-label="업종">${item.sector || ''}</td>
-              <td data-label="주요제품">${item.product || ''}</td>
-              <td data-label="대표자">${item.ceo || ''}</td>
-              <td data-label="지역">${item.region || ''}</td>
-              <td data-label="홈페이지">
-                <a href="${item.website || '#'}" target="_blank">${item.website || ''}</a>
-              </td>
-            `;
-            tbody.appendChild(tr);
-          });
-
+          allData = data;
+          renderTable(data);
           btn.disabled = false;
-          btn.textContent = "KRX 조회";
+          btn.innerHTML = "<i class='fa-solid fa-rotate'></i> KRX 조회";
         })
         .catch(err => {
           console.error(err);
@@ -168,6 +196,15 @@
           btn.textContent = "KRX 조회";
           alert("데이터 조회 중 오류가 발생했습니다.");
         });
+    });
+
+    // ✅ 회사명 검색 필터
+    document.getElementById("searchInput").addEventListener("input", (e) => {
+      const keyword = e.target.value.trim().toLowerCase();
+      const filtered = allData.filter(item =>
+        item.name && item.name.toLowerCase().includes(keyword)
+      );
+      renderTable(filtered);
     });
   </script>
 </th:block>

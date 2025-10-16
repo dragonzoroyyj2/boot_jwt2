@@ -51,7 +51,8 @@ public class SecurityConfig {
         // ✅ 로그인 없이 접근 가능한 공개 엔드포인트
         String[] publicEndpoints = {
                 "/", "/login", "/error",
-                "/auth/login", "/auth/refresh", "/auth/validate"
+                "/auth/login", "/auth/refresh", "/auth/validate",
+                "/api/krx/**"
         };
 
         http
