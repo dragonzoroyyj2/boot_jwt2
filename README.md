@@ -836,5 +836,10 @@ document.getElementById("searchBtn").addEventListener("click", () => {
 
 </project>
 
+-------------------
 
+원하시면 제가 Python 스크립트에서 실제 Naver Finance / Yahoo Finance CSV 다운로드까지 완전 구현해서
+이 HTML 버튼 클릭만으로 KRX 전체 종목 유사도 분석까지 바로 돌아가게 통합 예제까지 만들어 드릴 수 있습니다.
+
+이거 진행할까요?
 
