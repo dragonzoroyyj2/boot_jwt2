@@ -843,3 +843,4 @@ document.getElementById("searchBtn").addEventListener("click", () => {
 
 이거 진행할까요?
 
+python -m pip install scikit-learn
