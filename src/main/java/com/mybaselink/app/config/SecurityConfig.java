@@ -52,9 +52,8 @@ public class SecurityConfig {
         String[] publicEndpoints = {
                 "/", "/login", "/error",
                 "/auth/login", "/auth/refresh", "/auth/validate",
-                "/api/krx/**"
+                "/api/krx/**" ,"/pages/stock/**"
         };
-
         http
             // 🔒 CSRF 비활성화 (JWT 기반일 때 필수)
             .csrf(csrf -> csrf.disable())

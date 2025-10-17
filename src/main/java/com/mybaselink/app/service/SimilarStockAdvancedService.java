@@ -1,78 +1,69 @@
 package com.mybaselink.app.service;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 @Service
 public class SimilarStockAdvancedService {
 
-    // Python 실행 경로
+    private final ObjectMapper mapper = new ObjectMapper();
     private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
-    // Python 스크립트 경로
     private final String scriptPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\find_similar_full.py";
+    private final String jsonPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\data\\similarity_result.json";
 
-    /**
-     * baseName 종목과 유사한 KRX 종목을 분석
-     * @param baseName - 비교 기준 종목 (KRX 기반 YFinance 심볼: 199430.KQ 등)
-     * @param start - 조회 시작일 (YYYY-MM-DD)
-     * @param end - 조회 종료일 (YYYY-MM-DD)
-     * @return 유사도 결과 리스트
-     */
-    public List<Map<String, Object>> findSimilarStocks(String baseName, String start, String end) {
-        List<Map<String, Object>> resultList = new ArrayList<>();
+    public List<Map<String, Object>> fetchSimilar(String companyCode, String start, String end, int nSimilarStocks) {
         try {
-            // Python 스크립트 실행
-            ProcessBuilder pb = new ProcessBuilder(pythonExe, scriptPath, baseName, start, end);
-            pb.environment().put("PYTHONUTF8", "1"); // UTF-8 강제
-            pb.directory(new File("D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python")); // 작업 디렉토리
+            // 파이썬 스크립트가 있는 디렉토리를 작업 디렉토리로 설정
+            File scriptDir = new File("D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python");
+
+            ProcessBuilder pb = new ProcessBuilder(
+                    pythonExe,
+                    scriptPath,
+                    companyCode,
+                    start,
+                    end,
+                    "--n", String.valueOf(nSimilarStocks)
+            );
+            // 작업 디렉토리 설정
+            pb.directory(scriptDir); 
+
+            pb.environment().put("PYTHONIOENCODING", "utf-8");
+            pb.redirectErrorStream(true);
             Process process = pb.start();
 
-            // Python stdout 읽기
-            BufferedReader stdout = new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8));
-            BufferedReader stderr = new BufferedReader(new InputStreamReader(process.getErrorStream(), StandardCharsets.UTF_8));
-
-            StringBuilder output = new StringBuilder();
-            String line;
-            while ((line = stdout.readLine()) != null) output.append(line);
-
-            // Python stderr 읽기 (경고 메시지 확인용)
-            StringBuilder errors = new StringBuilder();
-            while ((line = stderr.readLine()) != null) errors.append(line).append("\n");
-            System.out.println("Python stderr:\n" + errors.toString());
+            try (BufferedReader reader =
+                         new BufferedReader(new InputStreamReader(process.getInputStream(), StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println("[Python] " + line);
+                }
+            }
 
             int exitCode = process.waitFor();
             if (exitCode != 0) {
-                throw new RuntimeException("Python 스크립트 실패, exitCode=" + exitCode);
+                throw new RuntimeException("Python script execution failed with exit code: " + exitCode);
             }
 
-            // Python JSON 파싱
-            JSONObject json = new JSONObject(output.toString());
-            if (!json.optBoolean("success", false)) {
-                throw new RuntimeException("분석 실패: " + json.optString("warning"));
+            File file = new File(jsonPath);
+            if (!file.exists() || file.length() == 0) {
+                System.err.println("JSON 결과 파일이 존재하지 않거나 비어 있습니다.");
+                return List.of();
             }
 
-            JSONArray results = json.getJSONArray("results");
-            for (int i = 0; i < results.length(); i++) {
-                JSONObject item = results.getJSONObject(i);
-                Map<String, Object> map = new HashMap<>();
+            List<Map<String, Object>> resultList = mapper.readValue(file, new TypeReference<List<Map<String, Object>>>(){});
 
-                // Python에서 반환된 target은 이미 .KS/.KQ 심볼
-                String yfSymbol = item.optString("target");
-                map.put("symbol", yfSymbol); // symbol 필드로 변경
-                map.put("company", item.optString("company")); // 회사명 추가
-                map.put("similarity", item.optDouble("similarity"));
-
-                resultList.add(map);
-            }
+            return resultList;
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("유사 종목 조회 중 오류 발생: " + e.getMessage());
+            return List.of();
         }
-        return resultList;
     }
 }

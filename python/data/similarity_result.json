@@ -1,0 +1,52 @@
+[
+  {
+    "ticker": "199430",
+    "name": "케이엔알시스템",
+    "cosine_similarity": 1.0
+  },
+  {
+    "ticker": "276040",
+    "name": "스코넥",
+    "cosine_similarity": 0.9795736283362878
+  },
+  {
+    "ticker": "093520",
+    "name": "매커스",
+    "cosine_similarity": 0.9773322357120503
+  },
+  {
+    "ticker": "369370",
+    "name": "블리츠웨이엔터테인먼트",
+    "cosine_similarity": 0.976414911866941
+  },
+  {
+    "ticker": "092600",
+    "name": "앤씨앤",
+    "cosine_similarity": 0.9747727615225599
+  },
+  {
+    "ticker": "361610",
+    "name": "SK아이이테크놀로지",
+    "cosine_similarity": 0.9713385685663708
+  },
+  {
+    "ticker": "405100",
+    "name": "큐알티",
+    "cosine_similarity": 0.9712115892840633
+  },
+  {
+    "ticker": "355390",
+    "name": "크라우드웍스",
+    "cosine_similarity": 0.9704828371654698
+  },
+  {
+    "ticker": "034120",
+    "name": "SBS",
+    "cosine_similarity": 0.9695868309504759
+  },
+  {
+    "ticker": "098460",
+    "name": "고영",
+    "cosine_similarity": 0.9692852729289881
+  }
+]
