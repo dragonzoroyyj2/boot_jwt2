@@ -62,9 +62,9 @@ public class P01A04ApiController {
         }
     }
 
-    // ============================================================
+    // ===============================
     // 🔍 리스트 조회 (검색 + 페이징)
-    // ============================================================
+    // ===============================
     @GetMapping
     public Map<String, Object> getList(
             @RequestParam(defaultValue = "0") int page,
@@ -75,8 +75,8 @@ public class P01A04ApiController {
 
         if (search != null && !search.isEmpty()) {
             filtered.removeIf(row ->
-                    !row.get("title").toString().contains(search) &&
-                    !row.get("owner").toString().contains(search)
+                    !safeStr(row.get("title")).contains(search) &&
+                    !safeStr(row.get("owner")).contains(search)
             );
         }
 
@@ -91,9 +91,9 @@ public class P01A04ApiController {
         return result;
     }
 
-    // ============================================================
+    // ===============================
     // 🔎 단건 조회 (상세 보기)
-    // ============================================================
+    // ===============================
     @GetMapping("/{id}")
     public ResponseEntity<?> getDetail(@PathVariable int id) {
         Optional<Map<String, Object>> found = mockList.stream()
@@ -108,9 +108,9 @@ public class P01A04ApiController {
         }
     }
 
-    // ============================================================
+    // ===============================
     // ➕ 등록
-    // ============================================================
+    // ===============================
     @PostMapping
     public Map<String, Object> addItem(@RequestBody Map<String, Object> request) {
         int newId = mockList.stream()
@@ -125,9 +125,9 @@ public class P01A04ApiController {
         return Map.of("status", "success", "id", newId);
     }
 
-    // ============================================================
+    // ===============================
     // ✏️ 수정
-    // ============================================================
+    // ===============================
     @PutMapping("/{id}")
     public Map<String, Object> updateItem(@PathVariable int id, @RequestBody Map<String, Object> request) {
         Optional<Map<String, Object>> found = mockList.stream()
@@ -144,96 +144,92 @@ public class P01A04ApiController {
         return Map.of("status", "not_found");
     }
 
-    // ============================================================
+    // ===============================
     // ❌ 삭제 (다중 삭제)
-    // ============================================================
+    // ===============================
     @DeleteMapping
     public Map<String, Object> deleteItems(@RequestBody List<Integer> ids) {
         mockList.removeIf(m -> ids.contains(m.get("id")));
         return Map.of("status", "deleted", "count", ids.size());
     }
 
- // ============================================================
- // 📊 엑셀(XLSX) 다운로드 (최종 안정버전)
- // ------------------------------------------------------------
- // ✅ 한글 파일명 완벽 대응 (모바일, iOS Safari, Edge, Chrome 등)
- // ✅ JWT / CSRF 상관없이 fetch + blob 다운로드 호환
- // ✅ Content-Disposition, Cache-Control 완비
- // ============================================================
- @GetMapping("/excel")
- public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String search) {
-     try (XSSFWorkbook workbook = new XSSFWorkbook()) {
-         Sheet sheet = workbook.createSheet("리스트");
+    // ===============================
+    // 📊 엑셀(XLSX) 다운로드
+    // ===============================
+    @GetMapping("/excel")
+    public ResponseEntity<byte[]> downloadExcel(@RequestParam(required = false) String search) {
+        try (XSSFWorkbook workbook = new XSSFWorkbook()) {
+            Sheet sheet = workbook.createSheet("리스트");
 
-         // ✅ 헤더 스타일
-         CellStyle headerStyle = workbook.createCellStyle();
-         Font headerFont = workbook.createFont();
-         headerFont.setBold(true);
-         headerStyle.setFont(headerFont);
-         headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
-         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
-         headerStyle.setAlignment(HorizontalAlignment.CENTER);
+            // 헤더 스타일
+            CellStyle headerStyle = workbook.createCellStyle();
+            Font headerFont = workbook.createFont();
+            headerFont.setBold(true);
+            headerStyle.setFont(headerFont);
+            headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+            headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+            headerStyle.setAlignment(HorizontalAlignment.CENTER);
 
-         // ✅ 헤더 작성
-         String[] headers = {"ID", "제목", "작성자", "등록일"};
-         Row headerRow = sheet.createRow(0);
-         for (int i = 0; i < headers.length; i++) {
-             Cell cell = headerRow.createCell(i);
-             cell.setCellValue(headers[i]);
-             cell.setCellStyle(headerStyle);
-         }
+            // 헤더 작성
+            String[] headers = {"ID", "제목", "작성자", "등록일"};
+            Row headerRow = sheet.createRow(0);
+            for (int i = 0; i < headers.length; i++) {
+                Cell cell = headerRow.createCell(i);
+                cell.setCellValue(headers[i]);
+                cell.setCellStyle(headerStyle);
+            }
 
-         // ✅ 검색 필터링 (mockList 가정)
-         List<Map<String, Object>> filtered = mockList.stream()
-                 .filter(item -> search == null || search.isBlank()
-                         || item.get("title").toString().contains(search)
-                         || item.get("owner").toString().contains(search))
-                 .collect(Collectors.toList());
+            // 검색 필터링
+            List<Map<String, Object>> filtered = mockList.stream()
+                    .filter(item -> search == null || search.isBlank()
+                            || safeStr(item.get("title")).contains(search)
+                            || safeStr(item.get("owner")).contains(search))
+                    .collect(Collectors.toList());
 
-         // ✅ 데이터 행 작성
-         int rowIdx = 1;
-         for (Map<String, Object> item : filtered) {
-             Row row = sheet.createRow(rowIdx++);
-             row.createCell(0).setCellValue(item.get("id").toString());
-             row.createCell(1).setCellValue(item.get("title").toString());
-             row.createCell(2).setCellValue(item.get("owner").toString());
-             row.createCell(3).setCellValue(item.get("regDate").toString());
-         }
+            // 데이터 행 작성
+            int rowIdx = 1;
+            for (Map<String, Object> item : filtered) {
+                Row row = sheet.createRow(rowIdx++);
+                row.createCell(0).setCellValue(safeStr(item.get("id")));
+                row.createCell(1).setCellValue(safeStr(item.get("title")));
+                row.createCell(2).setCellValue(safeStr(item.get("owner")));
+                row.createCell(3).setCellValue(safeStr(item.get("regDate")));
+            }
 
-         // ✅ 자동 열 너비 조정
-         for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
+            // 자동 열 너비 조정
+            for (int i = 0; i < headers.length; i++) sheet.autoSizeColumn(i);
 
-         // ✅ 워크북 → 바이트 변환
-         ByteArrayOutputStream out = new ByteArrayOutputStream();
-         workbook.write(out);
-         byte[] bytes = out.toByteArray();
+            // 워크북 → 바이트 변환
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            workbook.write(out);
+            byte[] bytes = out.toByteArray();
 
-         // ✅ 파일명 인코딩 (UTF-8, 브라우저 호환)
-         String filename = "리스트_" + LocalDate.now() + ".xlsx";
-         String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            // 파일명 인코딩
+            String filename = "리스트_" + LocalDate.now() + ".xlsx";
+            String encodedFilename = URLEncoder.encode(filename, StandardCharsets.UTF_8).replaceAll("\\+", "%20");
+            String contentDisposition = "attachment; filename=\"" + filename + "\"; filename*=UTF-8''" + encodedFilename;
 
-         // ⚠️ Content-Disposition 브라우저별 처리 (IE/Edge 대응)
-         String contentDisposition = "attachment; filename=\"" + filename + "\"";
-         contentDisposition += "; filename*=UTF-8''" + encodedFilename;
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
+                    .header(HttpHeaders.CONTENT_TYPE,
+                            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8")
+                    .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
+                    .header(HttpHeaders.PRAGMA, "no-cache")
+                    .header(HttpHeaders.EXPIRES, "0")
+                    .body(bytes);
 
-         return ResponseEntity.ok()
-                 .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition)
-                 .header(HttpHeaders.CONTENT_TYPE, 
-                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet; charset=UTF-8")
-                 .header(HttpHeaders.CACHE_CONTROL, "no-cache, no-store, must-revalidate")
-                 .header(HttpHeaders.PRAGMA, "no-cache")
-                 .header(HttpHeaders.EXPIRES, "0")
-                 .body(bytes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError()
+                    .header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")
+                    .body(("엑셀 생성 중 오류 발생: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
+        }
+    }
 
-     } catch (Exception e) {
-         e.printStackTrace();
-         return ResponseEntity.internalServerError()
-                 .header(HttpHeaders.CONTENT_TYPE, "text/plain; charset=UTF-8")
-                 .body(("엑셀 생성 중 오류 발생: " + e.getMessage()).getBytes(StandardCharsets.UTF_8));
-     }
- }
-
-    
-
-    
+    // ===============================
+    // 🔹 유틸: null 안전 변환
+    // ===============================
+    private String safeStr(Object obj) {
+        return obj != null ? obj.toString() : "";
+    }
 }

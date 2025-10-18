@@ -1,26 +1,22 @@
 /**
- * 🧩 commonUnifiedList.js
+ * 🧩 commonUnifiedList.js (완전 안정화 공용버전)
  * --------------------------------------------------------
  * ✅ 공용 리스트/CRUD/엑셀 + 반응형 테이블 + 페이징 자동조정
  * --------------------------------------------------------
- *
- * 사용법:
- *   initUnifiedList({ ...config });
- *
- * 주요 기능:
- *   1. 리스트 조회 및 페이징
- *   2. 검색 기능 (엔터/버튼)
- *   3. 체크박스 전체 선택/해제
- *   4. 모달 등록/상세/수정
- *   5. 선택 삭제
- *   6. 엑셀 다운로드
- *   7. 화면 리사이즈에 따른 페이징 버튼 조정
+ * 기능 요약:
+ *   - currentPage 항상 동기화
+ *   - 상세 모달 모든 필드 매핑
+ *   - 모달 닫기 안전 처리
+ *   - 페이징 버튼 반응형 조정
+ *   - 체크박스 상태 유지
+ *   - 검색 엔터 이벤트 안정화
+ *   - CSRF + JWT 지원
  */
 
 function initUnifiedList(config) {
-  // ===============================
+  // ============================================
   // 1️⃣ Config & 변수 초기화
-  // ===============================
+  // ============================================
   const {
     mode,
     apiUrl,
@@ -51,7 +47,7 @@ function initUnifiedList(config) {
   const $ = sel => document.querySelector(sel);
   const $$ = sel => document.querySelectorAll(sel);
 
-  // CSRF 토큰 및 JWT 처리
+  // CSRF & JWT
   const csrfToken = document.querySelector("meta[name='_csrf']")?.content;
   const csrfHeader = document.querySelector("meta[name='_csrf_header']")?.content;
 
@@ -64,9 +60,9 @@ function initUnifiedList(config) {
     return opt;
   };
 
-  // ===============================
-  // 2️⃣ 리스트 조회
-  // ===============================
+  // ============================================
+  // 2️⃣ 리스트 로드
+  // ============================================
   async function loadList(page = 0) {
     currentPage = page;
     const search = $(searchInputSelector)?.value || "";
@@ -86,8 +82,13 @@ function initUnifiedList(config) {
       renderTable(data.content || []);
       renderPagination(data.page, data.totalPages);
 
+      // 총 건수 업데이트
       const totalCountEl = document.getElementById("totalCount");
       if (totalCountEl) totalCountEl.textContent = `총 ${data.totalElements ?? 0}건`;
+
+      document.dispatchEvent(
+        new CustomEvent("totalCountUpdated", { detail: { count: data.totalElements ?? 0 } })
+      );
 
     } catch (err) {
       console.error(err);
@@ -95,9 +96,9 @@ function initUnifiedList(config) {
     }
   }
 
-  // ===============================
+  // ============================================
   // 3️⃣ 테이블 렌더링
-  // ===============================
+  // ============================================
   function renderTable(list) {
     const tbody = $(tableBodySelector);
     if (!tbody) return;
@@ -111,12 +112,12 @@ function initUnifiedList(config) {
     list.forEach(row => {
       const tr = document.createElement("tr");
 
-      // ✅ 체크박스 컬럼
+      // 체크박스
       const chkTd = document.createElement("td");
       chkTd.innerHTML = `<input type="checkbox" value="${row.id}">`;
       tr.appendChild(chkTd);
 
-      // ✅ 데이터 컬럼
+      // 컬럼 데이터
       columns.forEach(col => {
         const td = document.createElement("td");
         const val = row[col.key] ?? "";
@@ -131,7 +132,7 @@ function initUnifiedList(config) {
       tbody.appendChild(tr);
     });
 
-    // ✅ 상세보기 이벤트
+    // 상세보기 이벤트
     $$(".detail-link").forEach(a => {
       a.addEventListener("click", e => {
         e.preventDefault();
@@ -139,14 +140,14 @@ function initUnifiedList(config) {
       });
     });
 
-    // ✅ 체크박스 초기화
+    // 체크박스 초기화
     const checkAllEl = $(checkAllSelector);
     if (checkAllEl) checkAllEl.checked = false;
   }
 
-  // ===============================
+  // ============================================
   // 4️⃣ 페이징 렌더링
-  // ===============================
+  // ============================================
   function adjustGroupSize() {
     const tbody = $(tableBodySelector);
     if (!tbody) return;
@@ -202,9 +203,9 @@ function initUnifiedList(config) {
     renderPagination(currentPage, totalPagesCache);
   });
 
-  // ===============================
-  // 5️⃣ 검색 기능
-  // ===============================
+  // ============================================
+  // 5️⃣ 검색
+  // ============================================
   const searchInputEl = $(searchInputSelector);
   const searchBtnEl = $(searchBtnSelector);
   if (searchBtnEl) searchBtnEl.addEventListener("click", () => loadList(0));
@@ -212,9 +213,9 @@ function initUnifiedList(config) {
     if (e.key === "Enter") searchBtnEl?.click();
   });
 
-  // ===============================
-  // 6️⃣ 등록 모달
-  // ===============================
+  // ============================================
+  // 6️⃣ 등록
+  // ============================================
   $(addBtnSelector)?.addEventListener("click", () => $(modalId).style.display = "block");
   $(saveBtnSelector)?.addEventListener("click", async () => {
     const data = {};
@@ -233,9 +234,9 @@ function initUnifiedList(config) {
     }
   });
 
-  // ===============================
-  // 7️⃣ 상세 / 수정 모달
-  // ===============================
+  // ============================================
+  // 7️⃣ 상세 / 수정
+  // ============================================
   async function openDetailModal(id) {
     try {
       const res = await fetch(`${apiUrl}/${id}`, fetchOptions("GET"));
@@ -243,6 +244,7 @@ function initUnifiedList(config) {
       const item = await res.json();
       if (!item) return alert("데이터를 찾을 수 없습니다.");
 
+      // 필드 매핑
       Object.keys(detailFields).forEach(key => {
         const sel = detailFields[key];
         if ($(sel)) $(sel).value = item[key] ?? "";
@@ -274,9 +276,9 @@ function initUnifiedList(config) {
     }
   });
 
-  // ===============================
+  // ============================================
   // 8️⃣ 삭제
-  // ===============================
+  // ============================================
   $(deleteSelectedBtnSelector)?.addEventListener("click", async () => {
     const checked = Array.from(document.querySelectorAll(`${tableBodySelector} input[type='checkbox']:checked`))
       .map(chk => parseInt(chk.value));
@@ -294,9 +296,9 @@ function initUnifiedList(config) {
     }
   });
 
-  // ===============================
+  // ============================================
   // 9️⃣ 엑셀 다운로드
-  // ===============================
+  // ============================================
   $(excelBtnSelector)?.addEventListener("click", async () => {
     try {
       const search = $(searchInputSelector)?.value || "";
@@ -332,17 +334,17 @@ function initUnifiedList(config) {
     }
   });
 
-  // ===============================
-  // 🔟 체크박스 전체 선택/해제
-  // ===============================
+  // ============================================
+  // 🔟 체크박스 전체 선택 / 해제
+  // ============================================
   const checkAllEl = $(checkAllSelector);
   if (checkAllEl) {
     checkAllEl.addEventListener("change", e => {
       const checked = e.target.checked;
-      document.querySelectorAll(`${tableBodySelector} input[type='checkbox']`).forEach(chk => chk.checked = checked);
+      document.querySelectorAll(`${tableBodySelector} input[type='checkbox']`)
+        .forEach(chk => chk.checked = checked);
     });
   }
-
   document.addEventListener("change", e => {
     if (e.target.matches(`${tableBodySelector} input[type='checkbox']`)) {
       const all = document.querySelectorAll(`${tableBodySelector} input[type='checkbox']`);
@@ -351,9 +353,9 @@ function initUnifiedList(config) {
     }
   });
 
-  // ===============================
+  // ============================================
   // 1️⃣1️⃣ 모달 닫기 버튼
-  // ===============================
+  // ============================================
   $$(closeBtnSelector).forEach(btn => {
     btn.addEventListener("click", e => {
       const targetId = e.target.closest("[data-close]")?.dataset.close;
@@ -361,8 +363,8 @@ function initUnifiedList(config) {
     });
   });
 
-  // ===============================
+  // ============================================
   // 초기 로드
-  // ===============================
+  // ============================================
   loadList();
 }
