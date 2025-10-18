@@ -128,85 +128,45 @@
   </div>
 </div>
 
+
+
 <!-- 페이지별 초기화 -->
 <th:block layout:fragment="pageScript">
 
   <script src="/js/commonPagination.js"></script>
   <script src="/js/commonUnifiedList.js"></script>
-
+  
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-
-      // ================================
-      // 화면 폭 기반 페이지 그룹 사이즈 계산
-      // ================================
-      function getPageGroupSize() {
-        const width = window.innerWidth;
-        if (width < 480) return 3;
-        if (width < 768) return 5;
-        if (width < 1024) return 10;
-        return 20;
-      }
-
-      let pageGroupSize = getPageGroupSize();
-
-      // ================================
-      // 공용 리스트 초기화
-      // ================================
-      initUnifiedList({
-        mode: "server",               // server/client 선택
-        apiUrl: "/api/p01a04",
-        tableBodySelector: "#dataTable",
-        paginationSelector: "#pagination",
-        searchInputSelector: "#searchInput",
-        searchBtnSelector: "#searchBtn",
-        addBtnSelector: "#addBtn",
-        modalId: "#addModal",
-        saveBtnSelector: "#saveBtn",
-        closeBtnSelector: "[data-close]",
-        checkAllSelector: "#checkAll",
-        deleteSelectedBtnSelector: "#deleteSelectedBtn",
-        detailModalId: "#detailModal",
-        detailFields: {
-          id: "#detailId",
-          title: "#detailTitle",
-          owner: "#detailOwner",
-          regDate: "#detailRegDate"
-        },
-        updateBtnSelector: "#updateBtn",
-        excelBtnSelector: "#excelBtn",
-        columns: [
-          { key: "id", label: "No" },
-          { key: "title", label: "제목", isDetailLink: true },
-          { key: "owner", label: "담당자" },
-          { key: "regDate", label: "등록일" }
-        ],
-        pageSize: 10,
-        pageGroupSize: pageGroupSize
-      });
-
-      // ================================
-      // 검색 엔터 이벤트
-      // ================================
-      const searchInput = document.getElementById("searchInput");
-      const searchBtn = document.getElementById("searchBtn");
-      searchInput.addEventListener("keydown", e => {
-        if (e.key === "Enter") searchBtn.click();
-      });
-
-      // ================================
-      // 화면 리사이즈 시 페이지 그룹 재조정
-      // ================================
-      window.addEventListener("resize", () => {
-        const newGroupSize = getPageGroupSize();
-        if (newGroupSize !== pageGroupSize) {
-          pageGroupSize = newGroupSize;
-          // pagination 재렌더링 이벤트 호출
-          const event = new Event("resizePagination");
-          document.dispatchEvent(event);
-        }
-      });
-
+    initUnifiedList({
+      mode: "client",
+      apiUrl: "/api/p01a04",
+      tableBodySelector: "#dataTable",
+      paginationSelector: "#pagination",
+      searchInputSelector: "#searchInput",
+      searchBtnSelector: "#searchBtn",
+      addBtnSelector: "#addBtn",
+      modalId: "#addModal",
+      saveBtnSelector: "#saveBtn",
+      closeBtnSelector: "[data-close]",
+      checkAllSelector: "#checkAll",
+      deleteSelectedBtnSelector: "#deleteSelectedBtn",
+      detailModalId: "#detailModal",
+      detailFields: {
+        id: "#detailId",
+        title: "#detailTitle",
+        owner: "#detailOwner",
+        regDate: "#detailRegDate"
+      },
+      updateBtnSelector: "#updateBtn",
+      excelBtnSelector: "#excelBtn",
+      columns: [
+        { key: "id", label: "No" },
+        { key: "title", label: "제목", isDetailLink: true },
+        { key: "owner", label: "담당자" },
+        { key: "regDate", label: "등록일" }
+      ],
+      pageSize: 10,
+      pageGroupSize: 5
     });
   </script>
 </th:block>

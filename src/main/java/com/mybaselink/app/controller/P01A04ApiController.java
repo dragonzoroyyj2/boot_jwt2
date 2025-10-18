@@ -4,33 +4,14 @@ import java.io.ByteArrayOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
-import org.apache.poi.ss.usermodel.Cell;
-import org.apache.poi.ss.usermodel.CellStyle;
-import org.apache.poi.ss.usermodel.FillPatternType;
-import org.apache.poi.ss.usermodel.Font;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.ss.usermodel.Row;
-import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 /**
  * 📋 P01A04ApiController - 공용 리스트 페이지용 REST API  
@@ -69,27 +50,45 @@ public class P01A04ApiController {
     public Map<String, Object> getList(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search
+            @RequestParam(required = false) String search,
+            @RequestParam(defaultValue = "server") String mode   // 모드 추가
     ) {
         List<Map<String, Object>> filtered = new ArrayList<>(mockList);
 
         if (search != null && !search.isEmpty()) {
+            String searchLower = search.toLowerCase();
             filtered.removeIf(row ->
-                    !safeStr(row.get("title")).contains(search) &&
-                    !safeStr(row.get("owner")).contains(search)
+                    !safeStr(row.get("title")).toLowerCase().contains(searchLower) &&
+                    !safeStr(row.get("owner")).toLowerCase().contains(searchLower)
             );
         }
 
-        int start = page * size;
-        int end = Math.min(start + size, filtered.size());
-        List<Map<String, Object>> paged = filtered.subList(Math.min(start, end), end);
-
         Map<String, Object> result = new HashMap<>();
-        result.put("content", paged);
-        result.put("page", page);
-        result.put("totalPages", (int) Math.ceil((double) filtered.size() / size));
+
+        if ("client".equals(mode)) {
+            // 클라이언트 모드는 전체 데이터 반환
+            result.put("content", filtered);
+            result.put("page", 0);
+            result.put("totalPages", 1);
+            result.put("totalElements", filtered.size());
+        } else {
+            // 서버 모드는 기존 페이징 처리
+            int totalElements = filtered.size();
+            int totalPages = (int) Math.ceil((double) totalElements / size);
+            int start = page * size;
+            int end = Math.min(start + size, totalElements);
+            List<Map<String, Object>> paged = filtered.subList(Math.min(start, end), end);
+
+            result.put("content", paged);
+            result.put("page", page);
+            result.put("totalPages", totalPages);
+            result.put("totalElements", totalElements);
+        }
+
         return result;
     }
+
+
 
     // ===============================
     // 🔎 단건 조회 (상세 보기)
