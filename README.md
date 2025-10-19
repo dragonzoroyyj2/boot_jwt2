@@ -847,3 +847,6 @@ python -m pip install scikit-learn
 
 pip install yfinance
 
+----
+# fastparquet 설치
+pip install fastparquet
