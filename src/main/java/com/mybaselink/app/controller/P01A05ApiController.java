@@ -14,12 +14,12 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 📋 P01A04ApiController - 공용 리스트 페이지용 REST API  
+ * 📋 P01A05ApiController - 공용 리스트 페이지용 REST API  
  *
  * ✅ 역할:
- *   - /api/p01a04 → 목록 조회 / 등록 / 수정 / 삭제 / 엑셀 다운로드
+ *   - /api/p01a05 → 목록 조회 / 등록 / 수정 / 삭제 / 엑셀 다운로드
  * ✅ JS 연동:
- *   commonUnifiedList.js 의 initUnifiedList() 와 1:1 매칭됨
+ *   commonUnifiedList_op.js 의 initUnifiedList() 와 1:1 매칭됨
  */
 @RestController
 @RequestMapping("/api/p01a05")
@@ -43,50 +43,53 @@ public class P01A05ApiController {
         }
     }
 
-    // ===============================
-    // 🔍 리스트 조회 (검색 + 페이징)
-    // ===============================
+	 // ===============================
+	 // 🔍 리스트 조회 (검색 + 페이징)
+	 // ===============================
     @GetMapping
-    public Map<String, Object> getList(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(required = false) String search,
-            @RequestParam(defaultValue = "server") String mode   // 모드 추가
+    public Map<String,Object> getList(
+            @RequestParam(defaultValue="0") int page,
+            @RequestParam(defaultValue="10") int size,
+            @RequestParam(required=false) String search,
+            @RequestParam(defaultValue="server") String mode,
+            @RequestParam(defaultValue="true") boolean pagination
     ) {
-        List<Map<String, Object>> filtered = new ArrayList<>(mockList);
+        List<Map<String,Object>> filtered = new ArrayList<>(mockList);
 
-        if (search != null && !search.isEmpty()) {
-            String searchLower = search.toLowerCase();
-            filtered.removeIf(row ->
-                    !safeStr(row.get("title")).toLowerCase().contains(searchLower) &&
-                    !safeStr(row.get("owner")).toLowerCase().contains(searchLower)
-            );
+        // 검색 필터링
+        if(search != null && !search.isEmpty()){
+            String s = search.toLowerCase();
+            filtered.removeIf(item -> !safeStr(item.get("title")).toLowerCase().contains(s) &&
+                                      !safeStr(item.get("owner")).toLowerCase().contains(s));
         }
 
-        Map<String, Object> result = new HashMap<>();
+        Map<String,Object> result = new HashMap<>();
 
-        if ("client".equals(mode)) {
-            // 클라이언트 모드는 전체 데이터 반환
+        if(!pagination || "client".equals(mode)){
+            // 클라이언트 모드 or 페이징 false -> 전체 반환
             result.put("content", filtered);
             result.put("page", 0);
             result.put("totalPages", 1);
             result.put("totalElements", filtered.size());
-        } else {
-            // 서버 모드는 기존 페이징 처리
-            int totalElements = filtered.size();
-            int totalPages = (int) Math.ceil((double) totalElements / size);
-            int start = page * size;
-            int end = Math.min(start + size, totalElements);
-            List<Map<String, Object>> paged = filtered.subList(Math.min(start, end), end);
-
-            result.put("content", paged);
-            result.put("page", page);
-            result.put("totalPages", totalPages);
-            result.put("totalElements", totalElements);
+            return result;
         }
+
+        // 서버 모드 + 페이징
+        int totalElements = filtered.size();
+        int totalPages = (int)Math.ceil((double)totalElements / size);
+        int start = page*size;
+        int end = Math.min(start+size, totalElements);
+        List<Map<String,Object>> paged = filtered.subList(Math.min(start,end), end);
+
+        result.put("content", paged);
+        result.put("page", page);
+        result.put("totalPages", totalPages);
+        result.put("totalElements", totalElements);
 
         return result;
     }
+
+
 
 
 
