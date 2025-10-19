@@ -850,3 +850,7 @@ pip install yfinance
 ----
 # fastparquet 설치
 pip install fastparquet
+
+차트
+pip install matplotlib
+
