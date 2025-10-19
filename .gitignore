@@ -85,3 +85,6 @@ Thumbs.db
 # ============================================================
 # stock_data 폴더는 Git 추적에서 제외
 python/stock_data/
+
+# 특정 로그 파일 제외
+python/data/my_log_file.log
