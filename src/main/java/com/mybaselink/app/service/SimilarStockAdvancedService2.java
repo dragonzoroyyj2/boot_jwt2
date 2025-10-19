@@ -13,7 +13,7 @@ import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 @Service
-public class SimilarStockAdvancedService {
+public class SimilarStockAdvancedService2 {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";

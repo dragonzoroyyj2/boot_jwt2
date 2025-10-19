@@ -64,43 +64,6 @@
     @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
     #overlayLoading button { margin-top:0.5rem; padding:0.5rem 1rem; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; }
     #overlayLoading button:disabled { background:#999; cursor:default; }
-
-    /* =======================
-       KRX 팝업 툴바 스타일 개선
-       ======================= */
-    .toolbar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .toolbar input[type="text"] {
-      flex: 1 1 auto;
-      min-width: 150px;
-      padding: 0.45rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    .toolbar button {
-      flex: 0 0 auto;
-      white-space: nowrap;
-      padding: 0.45rem 0.8rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #2563eb;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-    @media (max-width: 400px) {
-      .toolbar { flex-direction: column; gap: 0.3rem; }
-      .toolbar button { width: 100%; }
-    }
   </style>
 </head>
 
@@ -189,6 +152,7 @@
       <button id="cancelLoadingBtn">취소</button>
     </div>
   </div>
+
 </div>
 
 <th:block layout:fragment="pageScript">
@@ -217,8 +181,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const cancelLoadingBtn = document.getElementById("cancelLoadingBtn");
 
   let allKrxStocks = [];
-  let currentController = null;
-  let krxController = null;
+  let currentController = null;   // 분석용
+  let krxController = null;       // KRX 조회용
 
   // 팝업 열기/닫기
   openPopupBtn.addEventListener("click", () => layerPopup.style.display = "block");
@@ -354,8 +318,8 @@ document.addEventListener("DOMContentLoaded", () => {
   // 취소 버튼 클릭 시
   if(cancelLoadingBtn){
     cancelLoadingBtn.addEventListener("click", () => {
-      if(currentController) currentController.abort();
-      if(krxController) krxController.abort();
+      if(currentController) currentController.abort(); // 분석 취소
+      if(krxController) krxController.abort();         // KRX 조회 취소
       overlayLoading.style.display = "none";
     });
   }

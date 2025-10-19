@@ -1,62 +1,3 @@
-import platform
-import sys
-import subprocess
-import logging
-
-# === 환경 체크 ===
-def check_environment():
-    logger = logging.getLogger("env_check")
-    logger.setLevel(logging.INFO)
-    handler = logging.StreamHandler(sys.stderr)
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-    handler.setFormatter(formatter)
-    logger.addHandler(handler)
-
-    logger.info("=== 환경 체크 시작 ===")
-
-    # OS 정보
-    os_name = platform.system()
-    os_version = platform.version()
-    arch = platform.architecture()[0]
-    logger.info(f"OS: {os_name} {os_version}, Architecture: {arch}")
-
-    # Python 버전
-    py_ver = sys.version
-    logger.info(f"Python Version: {py_ver}")
-
-    # 필수 라이브러리 체크
-    missing_libs = []
-    for lib in ["pandas", "numpy", "FinanceDataReader", "matplotlib", "sklearn"]:
-        try:
-            __import__(lib)
-        except ImportError:
-            missing_libs.append(lib)
-    if missing_libs:
-        logger.warning(f"설치되지 않은 라이브러리: {', '.join(missing_libs)}")
-    else:
-        logger.info("필수 라이브러리 모두 설치됨")
-
-    # Windows에서 Visual C++ Redistributable 체크
-    if os_name == "Windows":
-        try:
-            result = subprocess.run(
-                ["reg", "query", r"HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64"],
-                capture_output=True, text=True
-            )
-            if "Installed" in result.stdout:
-                logger.info("Visual C++ Redistributable 설치됨")
-            else:
-                logger.warning("Visual C++ Redistributable 미설치")
-        except Exception as e:
-            logger.warning(f"C++ Redistributable 체크 실패: {e}")
-
-    logger.info("=== 환경 체크 완료 ===\n")
-
-# === 기존 스크립트 시작 전에 환경 체크 호출 ===
-check_environment()
-
-# ==========================================================================
-
 import pandas as pd
 import json
 import logging
@@ -87,7 +28,7 @@ os.makedirs(data_dir, exist_ok=True)
 
 # 로깅 설정: 표준 에러(stderr)에 로그 출력
 logger = logging.getLogger()
-logger.setLevel(logging.INFO)  # 원래의 INFO 레벨 유지
+logger.setLevel(logging.INFO)
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
 file_handler = logging.FileHandler(log_file_path, encoding='utf-8')
 file_handler.setFormatter(formatter)
@@ -243,7 +184,7 @@ def find_similar_chart(base_symbol, start_date, end_date, n_similar_stocks=5):
             logger.error(f"데이터 처리 중 오류 발생 {symbol}: {e}")
             return None
 
-    with ThreadPoolExecutor(max_workers=5) as executor: # Worker 수를 적당히 조절
+    with ThreadPoolExecutor(max_workers=5) as executor:
         futures = {executor.submit(process_stock, symbol): symbol for symbol in krx_symbols}
         for future in as_completed(futures):
             result = future.result()
@@ -323,3 +264,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

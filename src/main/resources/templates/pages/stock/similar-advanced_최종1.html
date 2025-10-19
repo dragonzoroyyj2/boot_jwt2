@@ -64,43 +64,6 @@
     @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
     #overlayLoading button { margin-top:0.5rem; padding:0.5rem 1rem; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; }
     #overlayLoading button:disabled { background:#999; cursor:default; }
-
-    /* =======================
-       KRX 팝업 툴바 스타일 개선
-       ======================= */
-    .toolbar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .toolbar input[type="text"] {
-      flex: 1 1 auto;
-      min-width: 150px;
-      padding: 0.45rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    .toolbar button {
-      flex: 0 0 auto;
-      white-space: nowrap;
-      padding: 0.45rem 0.8rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #2563eb;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-    @media (max-width: 400px) {
-      .toolbar { flex-direction: column; gap: 0.3rem; }
-      .toolbar button { width: 100%; }
-    }
   </style>
 </head>
 
@@ -112,12 +75,14 @@
     <div class="search-row single-line">
       <input type="text" id="company" class="stock-name-input" placeholder="기준 종목명" value="케이엔알시스템">
       <input type="text" id="companyCode" class="stock-code-input" placeholder="티커 코드" value="199430">
+      
       <button id="openSearchPopupBtn" class="btn"><i class="fas fa-search"></i><span> 종목찾기</span></button>
     </div>
 
     <div class="search-row">
       <input type="date" id="start" value="2024-03-07">
       <input type="date" id="end" value="2024-12-09">
+      
       <input type="number" id="nStocks" placeholder="유사 종목 수" value="10" max="999">
       <button id="searchBtn" class="btn"><i class="fas fa-chart-line"></i><span> 분석</span></button>
     </div>
@@ -181,7 +146,9 @@
     </div>
   </div>
 
-  <!-- 로딩 오버레이 -->
+  <!-- =======================
+       로딩 오버레이
+       ======================= -->
   <div id="overlayLoading">
     <div class="loading-box">
       <div class="loading-icon"><i class="fas fa-spinner"></i></div>
@@ -189,6 +156,7 @@
       <button id="cancelLoadingBtn">취소</button>
     </div>
   </div>
+
 </div>
 
 <th:block layout:fragment="pageScript">
@@ -218,7 +186,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let allKrxStocks = [];
   let currentController = null;
-  let krxController = null;
 
   // 팝업 열기/닫기
   openPopupBtn.addEventListener("click", () => layerPopup.style.display = "block");
@@ -233,12 +200,7 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchBtn.disabled = true;
     fetchBtn.textContent = "조회 중...";
     overlayLoading.style.display = "flex";
-
-    if (krxController) krxController.abort();
-    krxController = new AbortController();
-    const krxSignal = krxController.signal;
-
-    fetch("/api/krx", { signal: krxSignal })
+    fetch("/api/krx")
       .then(res => res.json())
       .then(data => {
         allKrxStocks = data;
@@ -246,15 +208,13 @@ document.addEventListener("DOMContentLoaded", () => {
         fetchBtn.disabled = false;
         fetchBtn.textContent = "조회";
         overlayLoading.style.display = "none";
-        krxController = null;
       })
       .catch(err => {
+        console.error(err);
         fetchBtn.disabled = false;
         fetchBtn.textContent = "조회";
         overlayLoading.style.display = "none";
-        if (err.name === "AbortError") console.log("KRX 조회 취소됨");
-        else alert("KRX 조회 실패");
-        krxController = null;
+        alert("KRX 조회 실패");
       });
   });
 
@@ -278,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // KRX 검색 필터
+  // 검색 필터
   searchInput.addEventListener("keyup", e => {
     const keyword = e.target.value.toLowerCase();
     renderKrxTable(allKrxStocks.filter(item =>
@@ -334,8 +294,9 @@ document.addEventListener("DOMContentLoaded", () => {
             fetch(`/api/krx/similar-advanced/chart?baseSymbol=${companyCode}&compareSymbol=${item.ticker}&start=${start}&end=${end}`)
               .then(res => res.json())
               .then(chartData => {
-                if (chartData && chartData.image_data) chartImage.src = `data:image/png;base64,${chartData.image_data}`;
-                else chartImage.alt = "차트 데이터를 불러오지 못했습니다.";
+                if (chartData && chartData.image_data) {
+                  chartImage.src = `data:image/png;base64,${chartData.image_data}`;
+                } else chartImage.alt = "차트 데이터를 불러오지 못했습니다.";
               })
               .catch(err => { chartImage.alt="차트 로딩 오류"; console.error(err); });
           });
@@ -355,8 +316,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if(cancelLoadingBtn){
     cancelLoadingBtn.addEventListener("click", () => {
       if(currentController) currentController.abort();
-      if(krxController) krxController.abort();
-      overlayLoading.style.display = "none";
     });
   }
 

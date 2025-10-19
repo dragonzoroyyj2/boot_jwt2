@@ -79,3 +79,9 @@ Thumbs.db
 # ============================================================
 # .mvn/wrapper/maven-wrapper.jar : Maven Wrapper 실행 파일 (업로드 선택 사항)
 .mvn/wrapper/maven-wrapper.jar
+
+# ============================================================
+# 8️⃣ Python / Stock Data 제외
+# ============================================================
+# stock_data 폴더는 Git 추적에서 제외
+python/stock_data/

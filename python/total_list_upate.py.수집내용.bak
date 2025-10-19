@@ -1,0 +1,60 @@
+1. 전체 종목 데이터 초기 수집 
+먼저, FinanceDataReader를 사용해 전체 종목 리스트(krx_list)를 가져온 후, 각 종목의 전체 기간 데이터를 한 번에 수집해 파일로 저장합니다. 이 작업은 시간이 오래 걸리므로 한 번만 수행하고, 이후에는 매일 업데이트하는 방식을 사용하는 것이 좋습니다. 
+전체 수집 코드
+python
+import FinanceDataReader as fdr
+import pandas as pd
+import os
+
+# 데이터 저장 디렉토리 설정
+data_dir = 'stock_data'
+os.makedirs(data_dir, exist_ok=True)
+
+# KRX 전체 종목 리스트 가져오기
+krx_list = fdr.StockListing('KRX')
+
+# 각 종목의 전체 기간 데이터 수집 및 저장
+for symbol in krx_list['Symbol']:
+    try:
+        df = fdr.DataReader(symbol)
+        df.to_parquet(f'{data_dir}/{symbol}.parquet')
+        print(f'{symbol} 데이터 저장 완료')
+    except Exception as e:
+        print(f'{symbol} 데이터 수집 실패: {e}')
+코드를 사용할 때는 주의가 필요합니다.
+
+파일 형식: to_parquet()는 to_csv()보다 파일 크기가 작고 읽기 속도가 빠르므로 대용량 데이터 저장에 더 효율적입니다. 
+2. 일일 업데이트 로직 
+매일 장 마감 후, 이미 저장된 파일에 그날의 새로운 데이터를 추가하는 스크립트를 작성합니다. 이렇게 하면 전체 데이터를 다시 내려받을 필요 없이 효율적으로 데이터를 갱신할 수 있습니다. 
+일일 업데이트 코드
+python
+import FinanceDataReader as fdr
+import pandas as pd
+import os
+from datetime import datetime
+
+data_dir = 'stock_data'
+krx_list = fdr.StockListing('KRX')
+today = datetime.now().strftime('%Y-%m-%d')
+
+for symbol in krx_list['Symbol']:
+    file_path = f'{data_dir}/{symbol}.parquet'
+    try:
+        # 기존 데이터 로드
+        if os.path.exists(file_path):
+            existing_df = pd.read_parquet(file_path)
+            last_date = existing_df.index.max().strftime('%Y-%m-%d')
+            # 마지막 데이터 이후의 데이터만 업데이트
+            new_data = fdr.DataReader(symbol, start=last_date, end=today)
+            if not new_data.empty and new_data.index.max() > existing_df.index.max():
+                updated_df = pd.concat([existing_df, new_data[new_data.index > existing_df.index.max()]])
+                updated_df.to_parquet(file_path)
+                print(f'{symbol} 데이터 업데이트 완료')
+        else:
+            # 파일이 없으면 전체 데이터 새로 저장
+            df = fdr.DataReader(symbol)
+            df.to_parquet(file_path)
+            print(f'{symbol} 전체 데이터 새로 저장')
+            
+    except Exception as e:
+        print(f'{symbol} 데이터 업데이트 실패: {e}')

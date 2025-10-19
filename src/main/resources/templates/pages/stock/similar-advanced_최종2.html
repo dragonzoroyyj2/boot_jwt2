@@ -13,26 +13,26 @@
   <link rel="stylesheet" href="/css/commonTable.css">
 
   <style>
-    .content-container { padding: 1rem; box-sizing: border-box; }
-    .search-row { display: flex; flex-wrap: wrap; gap:0.5rem; margin-bottom:0.5rem; align-items:center; }
+    .content-container { padding:1rem; box-sizing:border-box; }
+    .search-row { display:flex; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; align-items:center; }
     .search-row.single-line { flex-wrap: nowrap; overflow-x:auto; }
     .stock-name-input { flex:1; min-width:120px; max-width:100%; padding:0.45rem 0.7rem; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
     .stock-code-input { width:90px; min-width:60px; text-align:center; padding:0.45rem 0.7rem; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; }
     #openSearchPopupBtn { white-space:nowrap; padding:0.45rem 0.7rem; border-radius:6px; border:1px solid #ccc; flex-shrink:0; display:flex; align-items:center; justify-content:center; gap:0.3rem; }
-    @media (max-width: 400px) {
-      #openSearchPopupBtn { width:35px; padding:0.45rem; }
-      #openSearchPopupBtn i { display:inline-block; }
-      #openSearchPopupBtn span { display:none; }
+    @media (max-width:400px){
+      #openSearchPopupBtn{ width:35px; padding:0.45rem; }
+      #openSearchPopupBtn i{ display:inline-block; }
+      #openSearchPopupBtn span{ display:none; }
     }
-    .search-row input[type=date], .search-row input[type=number], .search-row button { padding:0.45rem 0.7rem; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; flex-shrink:0; }
-    .search-row input[type=date] { width:120px; min-width:80px; }
-    .search-row input[type=number] { width:60px; min-width:50px; }
-    .search-row button { flex-shrink:0; white-space:nowrap; display:flex; align-items:center; justify-content:center; gap:0.3rem; }
-    @media (max-width: 400px) {
-      .search-row:nth-child(2) button { width:35px; padding:0.45rem; }
-      .search-row:nth-child(2) button i { display:inline-block; }
-      .search-row:nth-child(2) button span { display:none; }
-      .search-row:nth-child(2) input[type=date], .search-row:nth-child(2) input[type=number] { min-width:60px; width:auto; flex:1; }
+    .search-row input[type=date], .search-row input[type=number], .search-row button{ padding:0.45rem 0.7rem; border-radius:6px; border:1px solid #ccc; box-sizing:border-box; flex-shrink:0; }
+    .search-row input[type=date]{ width:120px; min-width:80px; }
+    .search-row input[type=number]{ width:60px; min-width:50px; }
+    .search-row button{ flex-shrink:0; white-space:nowrap; display:flex; align-items:center; justify-content:center; gap:0.3rem; }
+    @media (max-width:400px){
+      .search-row:nth-child(2) button{ width:35px; padding:0.45rem; }
+      .search-row:nth-child(2) button i{ display:inline-block; }
+      .search-row:nth-child(2) button span{ display:none; }
+      .search-row:nth-child(2) input[type=date], .search-row:nth-child(2) input[type=number]{ min-width:60px; width:auto; flex:1; }
     }
     .table-container { padding-left:0; padding-right:0; margin-top:1rem; overflow-x:auto; }
     table { width:100%; border-collapse:collapse; margin:0; }
@@ -53,6 +53,7 @@
       justify-content:center;
       flex-direction:column;
     }
+    #overlayLoading.active{ display:flex; }
     #overlayLoading .loading-box {
       background:#fff;
       padding:1rem 2rem;
@@ -61,46 +62,9 @@
       box-shadow:0 0 10px rgba(0,0,0,0.2);
     }
     #overlayLoading .loading-icon { font-size:2rem; margin-bottom:0.5rem; animation:spin 1s linear infinite; }
-    @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-    #overlayLoading button { margin-top:0.5rem; padding:0.5rem 1rem; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; }
-    #overlayLoading button:disabled { background:#999; cursor:default; }
-
-    /* =======================
-       KRX 팝업 툴바 스타일 개선
-       ======================= */
-    .toolbar {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 0.5rem;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    .toolbar input[type="text"] {
-      flex: 1 1 auto;
-      min-width: 150px;
-      padding: 0.45rem 0.7rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      box-sizing: border-box;
-    }
-    .toolbar button {
-      flex: 0 0 auto;
-      white-space: nowrap;
-      padding: 0.45rem 0.8rem;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      background: #2563eb;
-      color: #fff;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 0.3rem;
-    }
-    @media (max-width: 400px) {
-      .toolbar { flex-direction: column; gap: 0.3rem; }
-      .toolbar button { width: 100%; }
-    }
+    @keyframes spin{ 0%{transform:rotate(0deg);} 100%{transform:rotate(360deg);} }
+    #overlayLoading button{ margin-top:0.5rem; padding:0.5rem 1rem; border:none; border-radius:6px; background:#2563eb; color:#fff; cursor:pointer; }
+    #overlayLoading button:disabled{ background:#999; cursor:default; }
   </style>
 </head>
 
@@ -189,6 +153,7 @@
       <button id="cancelLoadingBtn">취소</button>
     </div>
   </div>
+
 </div>
 
 <th:block layout:fragment="pageScript">
@@ -218,7 +183,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   let allKrxStocks = [];
   let currentController = null;
-  let krxController = null;
 
   // 팝업 열기/닫기
   openPopupBtn.addEventListener("click", () => layerPopup.style.display = "block");
@@ -232,131 +196,124 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchBtn.addEventListener("click", () => {
     fetchBtn.disabled = true;
     fetchBtn.textContent = "조회 중...";
-    overlayLoading.style.display = "flex";
-
-    if (krxController) krxController.abort();
-    krxController = new AbortController();
-    const krxSignal = krxController.signal;
-
-    fetch("/api/krx", { signal: krxSignal })
+    overlayLoading.classList.add("active");
+    fetch("/api/krx")
       .then(res => res.json())
       .then(data => {
         allKrxStocks = data;
         renderKrxTable(allKrxStocks);
         fetchBtn.disabled = false;
         fetchBtn.textContent = "조회";
-        overlayLoading.style.display = "none";
-        krxController = null;
+        overlayLoading.classList.remove("active");
       })
       .catch(err => {
+        console.error(err);
         fetchBtn.disabled = false;
         fetchBtn.textContent = "조회";
-        overlayLoading.style.display = "none";
-        if (err.name === "AbortError") console.log("KRX 조회 취소됨");
-        else alert("KRX 조회 실패");
-        krxController = null;
+        overlayLoading.classList.remove("active");
+        alert("KRX 조회 실패");
       });
   });
 
-  function renderKrxTable(data) {
+  function renderKrxTable(data){
     krxTableBody.innerHTML = "";
-    data.forEach(item => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
+    data.forEach(item=>{
+      const tr=document.createElement("tr");
+      tr.innerHTML=`
         <td>${item.code||""}</td>
         <td>${item.name||""}</td>
         <td>${item.listedDate||""}</td>
         <td>${item.sector||""}</td>
         <td>${item.ceo||""}</td>
       `;
-      tr.addEventListener("click", () => {
-        companyInput.value = item.name;
-        companyCodeInput.value = item.code;
-        layerPopup.style.display = "none";
+      tr.addEventListener("click",()=>{
+        companyInput.value=item.name;
+        companyCodeInput.value=item.code;
+        layerPopup.style.display="none";
       });
       krxTableBody.appendChild(tr);
     });
   }
 
-  // KRX 검색 필터
-  searchInput.addEventListener("keyup", e => {
-    const keyword = e.target.value.toLowerCase();
-    renderKrxTable(allKrxStocks.filter(item =>
-      item.name.toLowerCase().includes(keyword) ||
-      item.code.toLowerCase().includes(keyword)
+  // 검색 필터
+  searchInput.addEventListener("keyup", e=>{
+    const keyword=e.target.value.toLowerCase();
+    renderKrxTable(allKrxStocks.filter(item=>
+      item.name.toLowerCase().includes(keyword) || item.code.toLowerCase().includes(keyword)
     ));
   });
 
   // 유사종목 분석
-  searchBtn.addEventListener("click", () => {
-    const companyCode = companyCodeInput.value;
-    const start = startInput.value;
-    const end = endInput.value;
-    const nStocks = nStocksInput.value;
+  searchBtn.addEventListener("click", ()=>{
+    const companyCode=companyCodeInput.value;
+    const start=startInput.value;
+    const end=endInput.value;
+    const nStocks=nStocksInput.value;
 
-    if (!companyCode || !start || !end) {
-      warning.textContent = "⚠️ 기준 종목과 날짜를 모두 입력해주세요.";
+    if(!companyCode || !start || !end){
+      warning.textContent="⚠️ 기준 종목과 날짜를 모두 입력해주세요.";
       return;
     }
 
-    if (currentController) currentController.abort();
-    currentController = new AbortController();
-    const signal = currentController.signal;
+    if(currentController) currentController.abort();
+    currentController=new AbortController();
+    const signal=currentController.signal;
 
-    overlayLoading.style.display = "flex";
-    warning.textContent = "";
-    resultTableBody.innerHTML = "";
+    overlayLoading.classList.add("active");
+    warning.textContent="";
+    resultTableBody.innerHTML="";
 
-    fetch(`/api/krx/similar-advanced?companyCode=${companyCode}&start=${start}&end=${end}&nSimilarStocks=${nStocks}`, { signal })
-      .then(res => res.json())
-      .then(data => {
-        overlayLoading.style.display = "none";
-        currentController = null;
+    fetch(`/api/krx/similar-advanced?companyCode=${companyCode}&start=${start}&end=${end}&nSimilarStocks=${nStocks}`, {signal})
+      .then(res=>res.json())
+      .then(data=>{
+        overlayLoading.classList.remove("active");
+        currentController=null;
 
-        if (!data || !Array.isArray(data.similar_stocks)) {
-          warning.textContent = "분석 실패 (응답 데이터 오류)";
+        if(!data || !Array.isArray(data.similar_stocks)){
+          warning.textContent="분석 실패 (응답 데이터 오류)";
           return;
         }
 
-        resultTableBody.innerHTML = "";
-        data.similar_stocks.forEach(item => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
+        resultTableBody.innerHTML="";
+        data.similar_stocks.forEach(item=>{
+          const tr=document.createElement("tr");
+          tr.innerHTML=`
             <td>${item.ticker||""}</td>
             <td>${item.name||""}</td>
             <td>${(item.cosine_similarity*100).toFixed(2)}%</td>
           `;
 
-          tr.addEventListener("click", () => {
-            chartPopup.style.display = "block";
-            chartImage.src = "";
-            chartImage.alt = "차트 불러오는 중...";
+          tr.addEventListener("click",()=>{
+            chartPopup.style.display="block";
+            chartImage.src="";
+            chartImage.alt="차트 불러오는 중...";
             fetch(`/api/krx/similar-advanced/chart?baseSymbol=${companyCode}&compareSymbol=${item.ticker}&start=${start}&end=${end}`)
-              .then(res => res.json())
-              .then(chartData => {
-                if (chartData && chartData.image_data) chartImage.src = `data:image/png;base64,${chartData.image_data}`;
-                else chartImage.alt = "차트 데이터를 불러오지 못했습니다.";
-              })
-              .catch(err => { chartImage.alt="차트 로딩 오류"; console.error(err); });
+              .then(res=>res.json())
+              .then(chartData=>{
+                if(chartData && chartData.image_data){
+                  chartImage.src=`data:image/png;base64,${chartData.image_data}`;
+                }else chartImage.alt="차트 데이터를 불러오지 못했습니다.";
+              }).catch(err=>{
+                chartImage.alt="차트 로딩 오류";
+                console.error(err);
+              });
           });
 
           resultTableBody.appendChild(tr);
         });
       })
-      .catch(err => {
-        overlayLoading.style.display = "none";
-        currentController = null;
-        if (err.name==="AbortError") warning.textContent="⚠️ 분석이 취소되었습니다.";
-        else { console.error(err); warning.textContent="서버 오류"; }
+      .catch(err=>{
+        overlayLoading.classList.remove("active");
+        currentController=null;
+        if(err.name==="AbortError") warning.textContent="⚠️ 분석이 취소되었습니다.";
+        else{ console.error(err); warning.textContent="서버 오류"; }
       });
   });
 
-  // 취소 버튼 클릭 시
+  // 취소 버튼 클릭
   if(cancelLoadingBtn){
-    cancelLoadingBtn.addEventListener("click", () => {
+    cancelLoadingBtn.addEventListener("click", ()=>{
       if(currentController) currentController.abort();
-      if(krxController) krxController.abort();
-      overlayLoading.style.display = "none";
     });
   }
 
