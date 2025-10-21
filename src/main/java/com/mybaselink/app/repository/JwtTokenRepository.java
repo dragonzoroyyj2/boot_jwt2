@@ -19,7 +19,6 @@ public interface JwtTokenRepository extends JpaRepository<JwtTokenEntity, Long> 
     /**
      * 특정 토큰 조회
      */
-	 // ✅ token 은 unique 하므로 Optional 사용
     Optional<JwtTokenEntity> findByToken(String token);
 
     /**

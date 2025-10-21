@@ -15,7 +15,7 @@ public class StockService {
     private final ObjectMapper mapper = new ObjectMapper();
     private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
     private final String scriptPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\krx_list_fetch.py";
-    private final String jsonPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\krx_list_full.json";
+    private final String jsonPath = "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\data\\krx_list_full.json";
 
     public List<Map<String, String>> fetchKrxList() {
         try {

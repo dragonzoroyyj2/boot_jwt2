@@ -4,19 +4,10 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 /**
- * 🔐 사용자 엔티티
+ * 🔐 UserEntity - 사용자 정보 엔티티 (로그인/프로필용)
  *
- * - id: PK
- * - username: 로그인 ID
- * - password: BCrypt 암호화 비밀번호
- * - fullName: 실제 이름
- * - email: 이메일
- * - phone: 전화번호
- * - role: 권한 (USER, ADMIN 등)
- * - status: 계정 상태 (active, inactive)
- * - lastLogin: 마지막 로그인 시각
- * - createdAt: 생성일
- * - updatedAt: 수정일
+ * - 이 엔티티는 실제 프로젝트에서 회원관리용으로 사용됩니다.
+ * - 필요 시 컬럼 추가/제거 가능 (현재는 기본 필드만 포함).
  */
 @Entity
 @Table(name = "users")
@@ -24,52 +15,37 @@ public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id; // BIGSERIAL PK
+    private Long id;
 
     @Column(name = "username", nullable = false, unique = true, length = 50)
-    private String username; // 로그인 ID
+    private String username;
 
     @Column(name = "password", nullable = false, length = 100)
-    private String password; // BCrypt 암호화
+    private String password;
 
     @Column(name = "full_name", length = 100)
-    private String fullName; // 실제 이름
+    private String fullName;
 
     @Column(name = "email", length = 100, unique = true)
     private String email;
 
-    @Column(name = "phone", length = 20)
-    private String phone;
+    @Column(name = "role", nullable = false, length = 50)
+    private String role = "ROLE_USER";
 
-    @Column(name = "role", nullable = false, length = 20)
-    private String role = "USER"; // 기본 USER
-
-    @Column(name = "status", nullable = false, length = 10)
-    private String status = "active"; // 계정 상태
-
-    @Column(name = "last_login")
-    private Instant lastLogin;
-
-    @Column(name = "created_at", updatable = false)
+    @Column(name = "created_at")
     private Instant createdAt = Instant.now();
-
-    @Column(name = "updated_at")
-    private Instant updatedAt = Instant.now();
 
     public UserEntity() {}
 
-    public UserEntity(String username, String password, String fullName, String email,
-                           String phone, String role, String status) {
+    public UserEntity(String username, String password, String fullName, String email, String role) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
-        this.phone = phone;
         this.role = role;
-        this.status = status;
     }
 
-    // ===== Getter / Setter =====
+    // Getter / Setter
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
 
@@ -85,21 +61,9 @@ public class UserEntity {
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
-
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
-
-    public Instant getLastLogin() { return lastLogin; }
-    public void setLastLogin(Instant lastLogin) { this.lastLogin = lastLogin; }
-
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
-
-    public Instant getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
 }

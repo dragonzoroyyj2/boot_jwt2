@@ -78,7 +78,7 @@ from io import BytesIO
 
 # 스크립트 파일의 디렉토리 경로를 기준으로 경로 설정
 script_dir = os.path.dirname(os.path.abspath(__file__))
-log_file_path = os.path.join(script_dir, "data", "my_log_file.log")
+log_file_path = os.path.join(script_dir, "log", "my_log_file.log")
 data_dir = os.path.join(script_dir, "stock_data")
 
 # 로그 파일 및 데이터 디렉토리 생성 (없으면)

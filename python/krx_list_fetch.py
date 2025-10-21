@@ -32,6 +32,7 @@ def fetch_krx():
         print(f"KRX 데이터 fetch 실패: {e}")
         return pd.DataFrame()
 
+
 def save_json(df, file_path=None):
     """
     DataFrame을 JSON 파일로 저장
@@ -41,7 +42,10 @@ def save_json(df, file_path=None):
         return
 
     if file_path is None:
-        file_path = os.path.join(os.path.dirname(__file__), "krx_list_full.json")
+        script_dir = os.path.dirname(os.path.abspath(__file__))  # 현재 스크립트 위치
+        data_dir = os.path.join(script_dir, "data")
+        os.makedirs(data_dir, exist_ok=True)  # data 폴더 없으면 생성
+        file_path = os.path.join(data_dir, "krx_list_full.json")
 
     try:
         df.to_json(file_path, orient='records', force_ascii=False, indent=4)
@@ -49,9 +53,14 @@ def save_json(df, file_path=None):
     except Exception as e:
         print(f"JSON 저장 실패: {e}")
 
+
 if __name__ == "__main__":
     print("KRX 데이터 fetch 시작...")
     df_krx = fetch_krx()
     print(f"KRX 데이터 수: {len(df_krx)}")
 
     save_json(df_krx)
+
+    # fetch_krx() 결과 리턴 확인
+    print("첫 5개 데이터 확인:")
+    print(df_krx.head())

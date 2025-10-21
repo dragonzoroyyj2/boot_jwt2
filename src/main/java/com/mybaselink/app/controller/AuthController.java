@@ -14,7 +14,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import com.mybaselink.app.entity.JwtTokenEntity;
-import com.mybaselink.app.jwt.JwtUtil;
+import com.mybaselink.app.security.jwt.JwtTokenProvider;
 import com.mybaselink.app.service.AuthService;
 import com.mybaselink.app.service.CustomUserDetailsService;
 
@@ -25,23 +25,20 @@ import jakarta.servlet.http.HttpServletRequest;
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
+    private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
     private final CustomUserDetailsService userDetailsService;
 
     public AuthController(AuthenticationManager authenticationManager,
-                          JwtUtil jwtUtil,
+                          JwtTokenProvider jwtTokenProvider,
                           AuthService authService,
                           CustomUserDetailsService userDetailsService) {
         this.authenticationManager = authenticationManager;
-        this.jwtUtil = jwtUtil;
+        this.jwtTokenProvider = jwtTokenProvider;
         this.authService = authService;
         this.userDetailsService = userDetailsService;
     }
 
-    // =================================================
-    // 로그인
-    // =================================================
     @PostMapping("/login")
     public ResponseEntity<Map<String,Object>> login(@RequestBody Map<String,String> request) {
         String username = request.get("username");
@@ -53,9 +50,9 @@ public class AuthController {
             );
 
             UserDetails userDetails = (UserDetails) auth.getPrincipal();
-            String token = jwtUtil.generateToken(userDetails);
+            String token = jwtTokenProvider.generateAccessToken(userDetails.getUsername());
             Instant now = Instant.now();
-            Instant expiresAt = now.plusMillis(jwtUtil.getExpiration());
+            Instant expiresAt = now.plusMillis(jwtTokenProvider.accessExpirationMillis);
 
             authService.login(userDetails, token, expiresAt);
 
@@ -75,12 +72,9 @@ public class AuthController {
         }
     }
 
-    // =================================================
-    // 로그아웃
-    // =================================================
     @PostMapping("/logout")
     public ResponseEntity<Map<String,Object>> logout(HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request);
         if(token != null) authService.logout(token);
 
         Map<String,Object> response = new HashMap<>();
@@ -88,12 +82,9 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // =================================================
-    // 세션 연장 (중복 토큰 방지)
-    // =================================================
     @PostMapping("/refresh")
     public ResponseEntity<Map<String,Object>> refreshSession(HttpServletRequest request) {
-        String oldToken = jwtUtil.resolveToken(request);
+        String oldToken = jwtTokenProvider.resolveToken(request);
         Map<String,Object> response = new HashMap<>();
 
         if(oldToken == null || !authService.isTokenValid(oldToken)) {
@@ -101,13 +92,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
 
-        String username = jwtUtil.getUsername(oldToken);
+        String username = jwtTokenProvider.getUsername(oldToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
-        String newToken = jwtUtil.generateToken(userDetails);
+        String newToken = jwtTokenProvider.generateAccessToken(username);
         Instant now = Instant.now();
-        Instant expiresAt = now.plusMillis(jwtUtil.getExpiration());
+        Instant expiresAt = now.plusMillis(jwtTokenProvider.accessExpirationMillis);
 
-        // 🔹 Repository에서 중복 토큰 체크
         Optional<JwtTokenEntity> existing = authService.findByToken(newToken);
         if(existing.isPresent()) {
             response.put("error","세션 연장이 이미 진행중입니다.");
@@ -125,17 +115,14 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 
-    // =================================================
-    // 토큰 검증
-    // =================================================
     @GetMapping("/validate")
     public ResponseEntity<Map<String,Object>> validateToken(HttpServletRequest request) {
-        String token = jwtUtil.resolveToken(request);
+        String token = jwtTokenProvider.resolveToken(request);
         Map<String,Object> result = new HashMap<>();
 
         if(token != null && authService.isTokenValid(token)) {
             result.put("valid",true);
-            result.put("username", jwtUtil.getUsername(token));
+            result.put("username", jwtTokenProvider.getUsername(token));
             return ResponseEntity.ok(result);
         } else {
             result.put("valid",false);
@@ -143,3 +130,4 @@ public class AuthController {
         }
     }
 }
+
