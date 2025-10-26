@@ -101,7 +101,42 @@
 		    <artifactId>json</artifactId>
 		    <version>20210307</version>
 		</dependency>
+		
+		<!-- ✅ Spring 캐시 지원 -->
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-cache</artifactId>
+		</dependency>
+		
+		<!-- ✅ Caffeine 캐시 엔진 -->
+		<dependency>
+		    <groupId>com.github.ben-manes.caffeine</groupId>
+		    <artifactId>caffeine</artifactId>
+		</dependency>
 
+		<!-- Parquet core -->
+		<dependency>
+		  <groupId>org.apache.parquet</groupId>
+		  <artifactId>parquet-avro</artifactId>
+		  <version>1.13.1</version>
+		</dependency>
+		
+		<!-- ✅ ExampleParquetReader 포함 -->
+		<dependency>
+		  <groupId>org.apache.parquet</groupId>
+		  <artifactId>parquet-hadoop</artifactId>
+		  <version>1.13.1</version>
+		</dependency>
+		
+		<!-- Hadoop core (Path, Configuration 등) -->
+		<dependency>
+		  <groupId>org.apache.hadoop</groupId>
+		  <artifactId>hadoop-common</artifactId>
+		  <version>3.3.6</version>
+		</dependency>
+
+
+    
         <!-- Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

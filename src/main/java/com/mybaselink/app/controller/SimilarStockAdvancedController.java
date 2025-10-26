@@ -1,76 +1,78 @@
 package com.mybaselink.app.controller;
 
 import com.mybaselink.app.service.SimilarStockAdvancedService;
+import com.mybaselink.app.service.TaskStatusService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/krx")
 public class SimilarStockAdvancedController {
 
+    private static final Logger logger = LoggerFactory.getLogger(SimilarStockAdvancedController.class);
     private final SimilarStockAdvancedService service;
+    private final TaskStatusService taskStatusService;
 
-    public SimilarStockAdvancedController(SimilarStockAdvancedService service) {
+    @Autowired
+    public SimilarStockAdvancedController(SimilarStockAdvancedService service, TaskStatusService taskStatusService) {
         this.service = service;
+        this.taskStatusService = taskStatusService;
     }
 
     /**
-     * 유사 종목 분석
+     * 유사 종목 분석 요청 (비동기)
      */
-    @GetMapping("/similar-advanced")
-    public ResponseEntity<Map<String, Object>> getSimilarStocks(
+    @GetMapping("/similar-advanced/request")
+    public ResponseEntity<?> requestSimilarAdvanced(
             @RequestParam String companyCode,
             @RequestParam String start,
             @RequestParam String end,
             @RequestParam(defaultValue = "10") int nSimilarStocks
     ) {
-        try {
-            List<Map<String,Object>> results = service.fetchSimilar(companyCode, start, end, nSimilarStocks);
-
-            // ✅ JS와 파이썬 결과 구조를 동일하게 맞춤
-            Map<String, Object> responseBody = Map.of(
-                "base_symbol", companyCode,
-                "similar_stocks", results
-            );
-
-            return new ResponseEntity<>(responseBody, HttpStatus.OK);
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            Map<String, Object> errorBody = Map.of(
-                "error", e.getMessage()
-            );
-            return new ResponseEntity<>(errorBody, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+        String taskId = UUID.randomUUID().toString();
+        logger.info("📊 유사 종목 분석 요청 수신: {}", taskId);
+        service.startSimilarStockTask(taskId, companyCode, start, end, nSimilarStocks);
+        return ResponseEntity.accepted().body(Map.of(
+                "taskId", taskId,
+                "message", "유사 종목 분석 작업을 시작했습니다."
+        ));
     }
 
     /**
-     * 유사 종목 차트
+     * 작업 취소
      */
-    @GetMapping("/similar-advanced/chart")
-    public ResponseEntity<Map<String, Object>> getChart(
-            @RequestParam String baseSymbol,
-            @RequestParam String compareSymbol,
-            @RequestParam String start,
-            @RequestParam String end
-    ) {
-        try {
-            String base64Image = service.fetchChart(baseSymbol, compareSymbol, start, end);
-            if (base64Image != null) {
-                // ✅ 프론트가 chartData.image_data 로 접근 가능하게
-                return ResponseEntity.ok(Map.of("image_data", base64Image));
-            } else {
-                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                        .body(Map.of("error", "차트 생성 실패"));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("error", "차트 조회 중 오류 발생: " + e.getMessage()));
+    @PostMapping("/similar-advanced/task/cancel")
+    public ResponseEntity<?> cancelTask(@RequestParam String taskId) {
+        boolean cancelled = service.cancelTask(taskId);
+        if (cancelled) {
+            return ResponseEntity.ok(Map.of(
+                    "status", "CANCELLED",
+                    "message", "분석이 취소되었습니다."
+            ));
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "취소할 작업을 찾을 수 없습니다."));
+    }
+
+    /**
+     * 작업 상태 조회 (NPE 방지 완전 수정)
+     */
+    @GetMapping("/similar-advanced/task/status")
+    public ResponseEntity<?> getTaskStatus(@RequestParam String taskId) {
+        TaskStatusService.TaskStatus status = taskStatusService.getTaskStatus(taskId);
+
+        Map<String, Object> response = new LinkedHashMap<>();
+        response.put("taskId", taskId);
+        response.put("status", status != null ? status.getStatus() : "UNKNOWN");
+        response.put("result", status != null && status.getResult() != null ? status.getResult() : Collections.emptyList());
+        response.put("error", status != null && status.getErrorMessage() != null ? status.getErrorMessage() : "");
+
+        logger.info("📡 작업 상태 조회 [{}]: {}", taskId, response.get("status"));
+        return ResponseEntity.ok(response);
     }
 }

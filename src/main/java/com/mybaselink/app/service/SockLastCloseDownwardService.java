@@ -1,4 +1,3 @@
-// src/main/java/com/mybaselink/app/service/LastCloseDownwardService.java
 package com.mybaselink.app.service;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,9 +25,9 @@ import java.util.stream.Collectors;
  * Python 스크립트를 호출하여 연속 하락 종목 조회 및 차트 반환 서비스 (비동기 처리)
  */
 @Service
-public class LastCloseDownwardService {
+public class SockLastCloseDownwardService {
 
-    private static final Logger logger = LoggerFactory.getLogger(LastCloseDownwardService.class);
+    private static final Logger logger = LoggerFactory.getLogger(SockLastCloseDownwardService.class);
     private final ObjectMapper mapper = new ObjectMapper();
     private final TaskStatusService taskStatusService;
 
@@ -41,7 +40,7 @@ public class LastCloseDownwardService {
     // 인메모리 락 (단일 서버 환경용)
     private final AtomicBoolean pythonScriptLock = new AtomicBoolean(false);
 
-    public LastCloseDownwardService(TaskStatusService taskStatusService) {
+    public SockLastCloseDownwardService(TaskStatusService taskStatusService) {
         this.taskStatusService = taskStatusService;
     }
 

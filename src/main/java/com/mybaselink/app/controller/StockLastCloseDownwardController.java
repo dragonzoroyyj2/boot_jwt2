@@ -1,4 +1,3 @@
-// src/main/java/com/mybaselink/app/controller/LastCloseDownwardController.java
 package com.mybaselink.app.controller;
 
 import com.mybaselink.app.service.LastCloseDownwardService;
@@ -19,10 +18,10 @@ import java.util.concurrent.atomic.AtomicReference;
  * 비동기 작업 처리를 위한 컨트롤러
  */
 @RestController
-@RequestMapping("/api/krx")
-public class LastCloseDownwardController {
+@RequestMapping("/api/stock/last-close-downward")
+public class StockLastCloseDownwardController {
 
-    private static final Logger logger = LoggerFactory.getLogger(LastCloseDownwardController.class);
+    private static final Logger logger = LoggerFactory.getLogger(StockLastCloseDownwardController.class);
     private final LastCloseDownwardService lastCloseDownwardService;
     private final TaskStatusService taskStatusService;
     
@@ -30,7 +29,7 @@ public class LastCloseDownwardController {
     private final AtomicReference<String> activeTaskId = new AtomicReference<>(null);
 
     @Autowired
-    public LastCloseDownwardController(LastCloseDownwardService lastCloseDownwardService, TaskStatusService taskStatusService) {
+    public StockLastCloseDownwardController(LastCloseDownwardService lastCloseDownwardService, TaskStatusService taskStatusService) {
         this.lastCloseDownwardService = lastCloseDownwardService;
         this.taskStatusService = taskStatusService;
     }
@@ -39,7 +38,7 @@ public class LastCloseDownwardController {
      * 상위 N 연속 하락 종목 비동기 조회 요청
      * GET /api/krx/last-close-downward/request?start=2023-01-01&end=2024-01-01&topN=10
      */
-    @GetMapping("/last-close-downward/request")
+    @GetMapping("/request")
     public ResponseEntity<?> requestLastCloseDownward(
             @RequestParam String start,
             @RequestParam String end,
@@ -58,7 +57,7 @@ public class LastCloseDownwardController {
      * 개별 종목 차트 비동기 생성 요청
      * GET /api/krx/last-close-downward/chart/request?baseSymbol=005930&start=2023-01-01&end=2024-01-01
      */
-    @GetMapping("/last-close-downward/chart/request")
+    @GetMapping("/chart/request")
     public ResponseEntity<?> requestChart(
             @RequestParam String baseSymbol,
             @RequestParam String start,
