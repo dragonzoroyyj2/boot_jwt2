@@ -136,87 +136,89 @@
   <script src="/js/commonPagination_op.js"></script>
   <script src="/js/commonUnifiedList_op.js"></script>
 
- 
-  
   <script>
-     document.addEventListener("DOMContentLoaded", () => {
-       function getPageGroupSize() {
-         const width = window.innerWidth;
-         if (width < 480) return 3;
-         if (width < 768) return 5;
-         if (width < 1024) return 10;
-         return 20;
-       }
+    document.addEventListener("DOMContentLoaded", () => {
 
-       let pageGroupSize = getPageGroupSize();
+      function getPageGroupSize() {
+        const width = window.innerWidth;
+        if (width < 480) return 3;
+        if (width < 768) return 5;
+        if (width < 1024) return 10;
+        return 20;
+      }
 
-       // ================================
-       // 공용 리스트 초기화
-       // ================================
-       const unifiedListManager = initUnifiedList({
-         mode: "server",
-         pagination: true,
-         apiUrl: "/api/stock/list",
-         tableBodySelector: "#dataTable",
-         paginationSelector: "#pagination",
-         searchInputSelector: "#searchInput",
-         searchBtnSelector: "#searchBtn",
-         addBtnSelector: "#addBtn",
-         deleteSelectedBtnSelector: "#deleteSelectedBtn",
-         excelBtnSelector: "#excelBtn",
-         columns: [
-             { key: "id", label: "No" },
-             { key: "Code", label: "종목코드"},
-             { key: "Name", label: "회사명" , isDetailLink: true },
-             { key: "Market", label: "시장구분" },
-             { key: "Dept", label: "업종" },
-             { key: "Close", label: "종가" },
-             { key: "Open", label: "시가" },
-             { key: "High", label: "고가" },
-             { key: "Low", label: "저가" },
-             { key: "Volume", label: "거래량" },
-             { key: "Date", label: "기준일" }
-         ],
-         pageSize: 10,
-         pageGroupSize: pageGroupSize,
-         buttons: {
-           search: true,
-           searchInput: true,
-           add: true,
-           deleteSelected: true,
-           excel: true
-         },
-		 enableRowClickDetail: true, // 행 전체 클릭으로 상세 보기 활성화
-		 // 상세보기만 가능하고, 수정/삭제 버튼 비활성화
-		 enableDetailView: true,
-		 detailViewButtons: {
-		   update: false,
-		   delete: false,
-		 }
-		
-       });
-	   
-	   
-	   // unifiedListManager 객체를 활용하여 공통 기능에 접근 가능
-	   console.log(unifiedListManager.currentPage);
-	   
-       // ================================
-       // 화면 리사이즈 시 페이지 그룹 재조정
-       // ================================
-       window.addEventListener("resize", () => {
-         const newGroupSize = getPageGroupSize();
-         if (newGroupSize !== pageGroupSize) {
-           pageGroupSize = newGroupSize;
-           unifiedListManager.pageGroupSize = newGroupSize;
-           const event = new Event("resizePagination");
-           document.dispatchEvent(event);
-         }
-       });
-     });
-   </script>
-  
-  
+      let pageGroupSize = getPageGroupSize();
+
+      // ================================
+      // 공용 리스트 초기화
+      // ================================
+      initUnifiedList({
+        mode: "server",           // server / client	✅ client - [전체데이터 한 번에 로드]선택        
+        pagination: true,        // true / false 		✅ false  - 페이징 완전 비활성화
+        apiUrl: "/api/stock/list",
+        tableBodySelector: "#dataTable",
+        paginationSelector: "#pagination",
+        searchInputSelector: "#searchInput",
+        searchBtnSelector: "#searchBtn",
+        addBtnSelector: "#addBtn",
+        modalId: "#addModal",
+        saveBtnSelector: "#saveBtn",
+        closeBtnSelector: "[data-close]",
+        checkAllSelector: "#checkAll",
+        deleteSelectedBtnSelector: "#deleteSelectedBtn",
+        detailModalId: "#detailModal",
+        detailFields: {
+          id: "#detailId",
+          title: "#detailTitle",
+          owner: "#detailOwner",
+          regDate: "#detailRegDate"
+        },
+        updateBtnSelector: "#updateBtn",
+        excelBtnSelector: "#excelBtn",
+        columns: [
+       	 	{ key: "id", label: "No" },
+            { key: "Code", label: "종목코드", isDetailLink: true },
+            { key: "Name", label: "회사명" },
+            { key: "Market", label: "시장구분" },
+            { key: "Dept", label: "업종" },
+            { key: "Close", label: "종가" },
+            { key: "Open", label: "시가" },
+            { key: "High", label: "고가" },
+            { key: "Low", label: "저가" },
+            { key: "Volume", label: "거래량" },
+            { key: "Date", label: "기준일" }
+        ],
+        pageSize: 10,
+        pageGroupSize: pageGroupSize
+      });
+
+      // ================================
+      // 검색 엔터 이벤트
+      // ================================
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      searchInput.addEventListener("keydown", e => {
+        if (e.key === "Enter") searchBtn.click();
+      });
+
+      // ================================
+      // 화면 리사이즈 시 페이지 그룹 재조정
+      // ================================
+      window.addEventListener("resize", () => {
+        const newGroupSize = getPageGroupSize();
+        if (newGroupSize !== pageGroupSize) {
+          pageGroupSize = newGroupSize;
+		  
+		  // pagination 재렌더링 이벤트 호출
+          const event = new Event("resizePagination");
+          document.dispatchEvent(event);
+        }
+      });
+
+    });
+  </script>
 </th:block>
 
 </body>
 </html>
+

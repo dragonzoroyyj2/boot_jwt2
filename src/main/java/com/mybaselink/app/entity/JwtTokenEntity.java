@@ -4,64 +4,120 @@ import jakarta.persistence.*;
 import java.time.Instant;
 
 /**
- * 🔐 JwtTokenEntity (안정형 완전판)
+ * 🔒 JwtTokenEntity
  *
- * ✅ JWT 토큰 관리용 엔티티
- * - 토큰 발급, 만료, 무효화 상태 추적
- * - 중복 로그인 방지 / 세션 연장 시 갱신
+ * JWT 토큰 DB 관리 엔티티
+ * ---------------------------------------------
+ * ✅ DB 테이블명: jwt_tokens
+ * ✅ 기능:
+ *   - 발급된 JWT 토큰 저장
+ *   - 만료일(expiration) 및 폐기 여부(revoked) 관리
+ *   - 사용자 단위 조회/폐기 가능
  */
 @Entity
-@Table(name = "jwt_tokens")
+@Table(name = "jwt_tokens",
+       indexes = {
+           @Index(name = "idx_jwt_token_username", columnList = "username"),
+           @Index(name = "idx_jwt_token_token", columnList = "token")
+       })
 public class JwtTokenEntity {
 
+    /** 기본 키 (자동 증가) */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /** 토큰 문자열 (JWT 본문) */
     @Column(nullable = false, unique = true, length = 512)
     private String token;
 
-    @Column(nullable = false)
+    /** 사용자명 (LoginUserEntity.username) */
+    @Column(nullable = false, length = 100)
     private String username;
 
+    /** 발급 시각 */
+    @Column(name = "issued_at", nullable = false, updatable = false)
+    private Instant issuedAt;
+
+    /** 만료 시각 */
+    @Column(name = "expires_at", nullable = false)
+    private Instant expiresAt;
+
+    /** 폐기 여부 (로그아웃/재로그인 등) */
     @Column(nullable = false)
     private boolean revoked = false;
 
-    @Column(nullable = false)
-    private Instant issuedAt;
-
-    @Column(nullable = false)
-    private Instant expiresAt;
-
+    // ============================================================
     // ✅ 기본 생성자
+    // ============================================================
+
     public JwtTokenEntity() {}
 
-    // ✅ 전체 필드 생성자
-    public JwtTokenEntity(Long id, String token, String username, boolean revoked, Instant issuedAt, Instant expiresAt) {
+    // ============================================================
+    // ✅ Getter / Setter
+    // ============================================================
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
         this.id = id;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
         this.token = token;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
         this.username = username;
-        this.revoked = revoked;
+    }
+
+    public Instant getIssuedAt() {
+        return issuedAt;
+    }
+
+    public void setIssuedAt(Instant issuedAt) {
         this.issuedAt = issuedAt;
+    }
+
+    public Instant getExpiresAt() {
+        return expiresAt;
+    }
+
+    public void setExpiresAt(Instant expiresAt) {
         this.expiresAt = expiresAt;
     }
 
-    // ✅ getter/setter
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
+    public boolean isRevoked() {
+        return revoked;
+    }
 
-    public String getToken() { return token; }
-    public void setToken(String token) { this.token = token; }
+    public void setRevoked(boolean revoked) {
+        this.revoked = revoked;
+    }
 
-    public String getUsername() { return username; }
-    public void setUsername(String username) { this.username = username; }
+    // ============================================================
+    // ✅ 편의 메서드
+    // ============================================================
 
-    public boolean isRevoked() { return revoked; }
-    public void setRevoked(boolean revoked) { this.revoked = revoked; }
+    /** 토큰이 만료되었는지 여부 */
+    @Transient
+    public boolean isExpired() {
+        return expiresAt != null && expiresAt.isBefore(Instant.now());
+    }
 
-    public Instant getIssuedAt() { return issuedAt; }
-    public void setIssuedAt(Instant issuedAt) { this.issuedAt = issuedAt; }
-
-    public Instant getExpiresAt() { return expiresAt; }
-    public void setExpiresAt(Instant expiresAt) { this.expiresAt = expiresAt; }
+    /** 토큰이 사용 가능한지 여부 */
+    @Transient
+    public boolean isActive() {
+        return !revoked && !isExpired();
+    }
 }

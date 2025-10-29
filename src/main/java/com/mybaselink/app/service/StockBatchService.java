@@ -3,6 +3,7 @@ package com.mybaselink.app.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -23,11 +24,15 @@ public class StockBatchService {
     private final TaskStatusService taskStatusService;
 
     // Python 실행 환경
-    private final String pythonExe = "C:\\Users\\dragon\\AppData\\Local\\Programs\\Python\\Python310\\python.exe";
-    private final String stockUpdateScriptPath =
-            "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python\\stock\\py\\update_stock_listing.py";
-    private final String pythonWorkingDir =
-            "D:\\project\\dev_boot_project\\workspace\\MyBaseLink\\python";
+    // ✅ @Value 어노테이션으로 프로퍼티 값 주입
+    @Value("${python.executable.path:}")
+    private String pythonExe;
+    
+    @Value("${python.update_stock_listing.path:}")
+    private String stockUpdateScriptPath;
+    
+    @Value("${python.working.dir:}")
+    private String pythonWorkingDir;
 
     // 단일 선점
     private final AtomicBoolean activeLock = new AtomicBoolean(false);

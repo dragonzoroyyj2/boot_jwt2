@@ -1,156 +1,197 @@
 package com.mybaselink.app.controller;
 
-import java.time.Instant;
-import java.util.*;
-
+import com.mybaselink.app.security.JwtTokenProvider;
+import com.mybaselink.app.service.AuthService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import com.mybaselink.app.entity.JwtTokenEntity;
-import com.mybaselink.app.security.jwt.JwtTokenProvider;
-import com.mybaselink.app.service.AuthService;
-import com.mybaselink.app.service.CustomUserDetailsService;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Arrays;
+import java.util.Map;
+import java.util.Optional;
 
-import jakarta.servlet.http.HttpServletRequest;
-
+/**
+ * 🔐 AuthController – HttpOnly 쿠키 기반 JWT 인증 컨트롤러 (Spring Boot 3.5.x)
+ *
+ * ✅ 특징:
+ * - Spring Security 6.x 호환 (formLogin 비활성 + fetch 기반)
+ * - 로컬(HTTP) / 운영(HTTPS) 자동 분기
+ * - AuthenticationManager 순환참조 문제 해결
+ */
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
-    private final AuthenticationManager authenticationManager;
+    private final AuthenticationConfiguration authenticationConfiguration;
     private final JwtTokenProvider jwtTokenProvider;
     private final AuthService authService;
-    private final CustomUserDetailsService userDetailsService;
 
-    public AuthController(AuthenticationManager authenticationManager,
+    public AuthController(AuthenticationConfiguration authenticationConfiguration,
                           JwtTokenProvider jwtTokenProvider,
-                          AuthService authService,
-                          CustomUserDetailsService userDetailsService) {
-        this.authenticationManager = authenticationManager;
+                          AuthService authService) {
+        this.authenticationConfiguration = authenticationConfiguration;
         this.jwtTokenProvider = jwtTokenProvider;
         this.authService = authService;
-        this.userDetailsService = userDetailsService;
     }
 
-    /** ✅ 로그인 (roles 포함 토큰 발급) */
+    // 요청 DTO
+    private static class LoginRequest {
+        public String username;
+        public String password;
+    }
+
+    /**
+     * ✅ 로그인 처리 (POST /auth/login)
+     * - AuthenticationManager를 직접 획득 (순환참조 방지)
+     * - 성공 시 JWT를 HttpOnly 쿠키에 저장
+     */
     @PostMapping("/login")
-    public ResponseEntity<Map<String,Object>> login(@RequestBody Map<String,String> request) {
-        String username = request.get("username");
-        String password = request.get("password");
-
+    public ResponseEntity<?> login(@RequestBody LoginRequest requestBody,
+                                   HttpServletResponse response,
+                                   HttpServletRequest request) {
         try {
-            Authentication auth = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(username, password)
+            AuthenticationManager authenticationManager =
+                    authenticationConfiguration.getAuthenticationManager();
+
+            Authentication authentication = authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            requestBody.username,
+                            requestBody.password
+                    )
             );
 
-            UserDetails userDetails = (UserDetails) auth.getPrincipal();
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            String username = userDetails.getUsername();
 
-            // ✅ 변경된 부분 — roles(권한)도 함께 전달
-            String token = jwtTokenProvider.generateAccessToken(
-                    userDetails.getUsername(),
-                    userDetails.getAuthorities()
-            );
-
-            Instant now = Instant.now();
-            Instant expiresAt = now.plusMillis(jwtTokenProvider.accessExpirationMillis);
-
+            // JWT 생성 및 DB 저장
+            String token = jwtTokenProvider.generateAccessToken(username, userDetails.getAuthorities());
+            Instant expiresAt = Instant.now().plusMillis(jwtTokenProvider.accessExpirationMillis);
             authService.login(userDetails, token, expiresAt);
 
-            Map<String,Object> result = new HashMap<>();
-            result.put("token", token);
-            result.put("username", username);
-            result.put("role", userDetails.getAuthorities());
-            result.put("sessionMillis", expiresAt.toEpochMilli());
-            result.put("serverTime", now.toEpochMilli());
-            result.put("message", "로그인 성공");
+            // HttpOnly 쿠키 설정 (로컬: secure=false, 운영: true)
+            ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                    .httpOnly(true)
+                    .secure(request.isSecure()) // HTTPS면 true
+                    .sameSite(request.isSecure() ? "Strict" : "Lax")
+                    .path("/")
+                    .maxAge(Duration.ofMillis(jwtTokenProvider.accessExpirationMillis))
+                    .build();
+            response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
 
-            return ResponseEntity.ok(result);
-
+            return ResponseEntity.ok(Map.of(
+                    "message", "로그인 성공",
+                    "username", username,
+                    "sessionMillis", jwtTokenProvider.accessExpirationMillis,
+                    "serverTime", System.currentTimeMillis()
+            ));
         } catch (Exception e) {
-            Map<String,Object> error = new HashMap<>();
-            error.put("error", "아이디 또는 비밀번호가 올바르지 않습니다.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(error);
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "로그인 실패: " + e.getMessage()));
         }
     }
 
-    /** ✅ 로그아웃 */
-    @PostMapping("/logout")
-    public ResponseEntity<Map<String,Object>> logout(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        if (token != null) authService.logout(token);
-
-        Map<String,Object> response = new HashMap<>();
-        response.put("message", "로그아웃 처리 완료");
-        return ResponseEntity.ok(response);
-    }
-
-    /** ✅ 세션 연장 (5분 이하만 허용) */
+    /**
+     * ✅ 토큰 갱신 (POST /auth/refresh)
+     * - 쿠키에 저장된 JWT 검증 후 새 토큰 발급
+     */
     @PostMapping("/refresh")
-    public ResponseEntity<Map<String,Object>> refreshSession(HttpServletRequest request) {
-        String oldToken = jwtTokenProvider.resolveToken(request);
-        Map<String,Object> response = new HashMap<>();
-
+    public ResponseEntity<?> refreshToken(HttpServletRequest request,
+                                          HttpServletResponse response) {
+        String oldToken = extractCookieToken(request, "jwt");
         if (oldToken == null || !authService.isTokenValid(oldToken)) {
-            response.put("error", "세션이 만료되었거나 유효하지 않습니다.");
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "만료되었거나 유효하지 않은 토큰입니다."));
         }
 
-        String username = jwtTokenProvider.getUsername(oldToken);
-        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        try {
+            String username = jwtTokenProvider.getUsername(oldToken);
+            UserDetails userDetails = authService.loadUserByUsername(username);
 
-        // ✅ 남은 시간이 5분 이상이면 새로고침 거부
-        long remainingMillis = jwtTokenProvider.getRemainingMillis(oldToken);
-        if (remainingMillis > 5 * 60 * 1000) {
-            response.put("error", "5분 이상 남아 새로고침 불가");
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+            String newToken = jwtTokenProvider.generateAccessToken(username, userDetails.getAuthorities());
+            Instant newExpiresAt = Instant.now().plusMillis(jwtTokenProvider.accessExpirationMillis);
+
+            authService.refreshToken(oldToken, newToken, newExpiresAt);
+            addJwtCookie(response, newToken, request.isSecure());
+
+            return ResponseEntity.ok(Map.of(
+                    "message", "토큰 갱신 성공",
+                    "sessionMillis", jwtTokenProvider.accessExpirationMillis,
+                    "serverTime", System.currentTimeMillis()
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "토큰 갱신 실패: " + e.getMessage()));
         }
-
-        // ✅ 새 토큰 생성 시에도 roles 포함
-        String newToken = jwtTokenProvider.generateAccessToken(
-                username,
-                userDetails.getAuthorities()
-        );
-
-        Instant now = Instant.now();
-        Instant expiresAt = now.plusMillis(jwtTokenProvider.accessExpirationMillis);
-
-        Optional<JwtTokenEntity> existing = authService.findByToken(newToken);
-        if (existing.isPresent()) {
-            response.put("error", "세션 연장이 이미 진행 중입니다.");
-            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
-        }
-
-        authService.refreshToken(oldToken, newToken, expiresAt);
-
-        response.put("token", newToken);
-        response.put("username", username);
-        response.put("role", userDetails.getAuthorities());
-        response.put("sessionMillis", expiresAt.toEpochMilli());
-        response.put("serverTime", now.toEpochMilli());
-        response.put("message", "세션 연장 완료");
-
-        return ResponseEntity.ok(response);
     }
 
-    /** ✅ 토큰 유효성 검증 */
-    @GetMapping("/validate")
-    public ResponseEntity<Map<String,Object>> validateToken(HttpServletRequest request) {
-        String token = jwtTokenProvider.resolveToken(request);
-        Map<String,Object> result = new HashMap<>();
+    /**
+     * ✅ 로그아웃 (POST /auth/logout)
+     * - CustomLogoutHandler에서 DB revoke 및 쿠키 삭제 처리
+     */
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout() {
+        return ResponseEntity.ok(Map.of("message", "로그아웃 완료"));
+    }
 
-        if (token != null && authService.isTokenValid(token)) {
-            result.put("valid", true);
-            result.put("username", jwtTokenProvider.getUsername(token));
-            result.put("roles", jwtTokenProvider.getRoles(token));
-            return ResponseEntity.ok(result);
-        } else {
-            result.put("valid", false);
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(result);
+    /**
+     * ✅ 현재 로그인된 사용자 조회 (GET /auth/me)
+     */
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication == null || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getPrincipal())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Map.of("error", "인증되지 않은 사용자입니다."));
         }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof UserDetails userDetails) {
+            return ResponseEntity.ok(Map.of(
+                    "name", userDetails.getUsername(),
+                    "email", userDetails.getUsername() + "@mybaselink.com",
+                    "role", userDetails.getAuthorities().stream().findFirst().map(Object::toString).orElse("ROLE_USER")
+            ));
+        }
+
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "사용자 정보를 가져올 수 없습니다."));
+    }
+
+    // ========================================
+    // 내부 유틸
+    // ========================================
+    private void addJwtCookie(HttpServletResponse response, String token, boolean secure) {
+        ResponseCookie cookie = ResponseCookie.from("jwt", token)
+                .httpOnly(true)
+                .secure(secure)
+                .sameSite(secure ? "Strict" : "Lax")
+                .path("/")
+                .maxAge(Duration.ofMillis(jwtTokenProvider.accessExpirationMillis))
+                .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    private String extractCookieToken(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) return null;
+        Optional<Cookie> cookieOpt = Arrays.stream(request.getCookies())
+                .filter(c -> name.equals(c.getName()))
+                .findFirst();
+        return cookieOpt.map(Cookie::getValue).orElse(null);
     }
 }

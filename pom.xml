@@ -8,7 +8,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+         <version>3.5.6</version>
         <relativePath/>
     </parent>
 
@@ -19,23 +19,24 @@
     <description>MyBaseLink Application &amp; Management Platform</description>
 
     <properties>
-        <!-- JDK 21 기준 -->
         <java.version>21</java.version>
         <jjwt.version>0.11.5</jjwt.version>
     </properties>
 
     <dependencies>
-        <!-- Web + REST -->
+        <!-- ✅ Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring Security + JWT -->
+        <!-- ✅ Spring Security (6.2.x 내장, 줄 없음) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
+
+        <!-- ✅ JWT -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
@@ -54,7 +55,7 @@
             <scope>runtime</scope>
         </dependency>
 
-        <!-- Thymeleaf 템플릿 -->
+        <!-- ✅ Thymeleaf -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -64,86 +65,77 @@
             <artifactId>thymeleaf-layout-dialect</artifactId>
         </dependency>
 
-        <!-- JPA + PostgreSQL -->
+        <!-- ✅ JPA + PostgreSQL -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-jpa</artifactId>
         </dependency>
-	   <dependency>
-	    <groupId>org.postgresql</groupId>
-	    <artifactId>postgresql</artifactId>
-	    <version>42.6.0</version> <!-- JDK21 호환 최신버전 권장 -->
-		</dependency>
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+        </dependency>
 
-
-        <!-- Validation -->
+        <!-- ✅ Validation -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
-        <!-- Apache POI (Excel Export) -->
+        <!-- ✅ Apache POI -->
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
-            <version>5.2.5</version>
+            <version>5.3.0</version>
         </dependency>
 
-        <!-- DevTools (개발 자동 리로드, runtime 전용) -->
+        <!-- ✅ JSON -->
+        <dependency>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20231013</version>
+        </dependency>
+
+        <!-- ✅ Cache + Caffeine -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+        </dependency>
+
+        <!-- ✅ Apache Parquet / Hadoop -->
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-avro</artifactId>
+            <version>1.14.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.parquet</groupId>
+            <artifactId>parquet-hadoop</artifactId>
+            <version>1.14.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>3.4.1</version>
+        </dependency>
+
+        <!-- ✅ DevTools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-devtools</artifactId>
             <scope>runtime</scope>
         </dependency>
-        
-		<dependency>
-		    <groupId>org.json</groupId>
-		    <artifactId>json</artifactId>
-		    <version>20210307</version>
-		</dependency>
-		
-		<!-- ✅ Spring 캐시 지원 -->
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-cache</artifactId>
-		</dependency>
-		
-		<!-- ✅ Caffeine 캐시 엔진 -->
-		<dependency>
-		    <groupId>com.github.ben-manes.caffeine</groupId>
-		    <artifactId>caffeine</artifactId>
-		</dependency>
 
-		<!-- Parquet core -->
-		<dependency>
-		  <groupId>org.apache.parquet</groupId>
-		  <artifactId>parquet-avro</artifactId>
-		  <version>1.13.1</version>
-		</dependency>
-		
-		<!-- ✅ ExampleParquetReader 포함 -->
-		<dependency>
-		  <groupId>org.apache.parquet</groupId>
-		  <artifactId>parquet-hadoop</artifactId>
-		  <version>1.13.1</version>
-		</dependency>
-		
-		<!-- Hadoop core (Path, Configuration 등) -->
-		<dependency>
-		  <groupId>org.apache.hadoop</groupId>
-		  <artifactId>hadoop-common</artifactId>
-		  <version>3.3.6</version>
-		</dependency>
-
-
-    
-        <!-- Test -->
+        <!-- ✅ Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
-
     </dependencies>
 
     <build>
@@ -154,5 +146,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>

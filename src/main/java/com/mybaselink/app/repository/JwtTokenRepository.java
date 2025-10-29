@@ -16,18 +16,15 @@ import java.util.Optional;
 @Repository
 public interface JwtTokenRepository extends JpaRepository<JwtTokenEntity, Long> {
 
-    /**
-     * 특정 토큰 조회
-     */
+    /** 특정 토큰 조회 */
     Optional<JwtTokenEntity> findByToken(String token);
 
-    /**
-     * 사용자 활성 토큰 조회 (revoked=false)
-     */
+    /** 사용자 활성 토큰 조회 (revoked=false) */
     List<JwtTokenEntity> findByUsernameAndRevokedFalse(String username);
 
-    /**
-     * 만료된 토큰 삭제
-     */
+    /** 만료된 토큰 일괄 삭제 */
     long deleteAllByExpiresAtBefore(Instant now);
+
+    /** 사용자 모든 토큰 조회 */
+    List<JwtTokenEntity> findAllByUsername(String username);
 }

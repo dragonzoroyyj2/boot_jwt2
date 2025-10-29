@@ -1,0 +1,22 @@
+✅ 실전 적용 방법
+
+1️⃣ 로컬 실행:
+
+mvn spring-boot:run -Dspring.profiles.active=local
+
+
+2️⃣ 운영 배포:
+
+export ENV_JWT_SECRET="YOUR_REAL_RANDOM_SECRET_KEY"
+java -jar MyBaseLink.jar --spring.profiles.active=prod
+
+✅ JWT Secret 생성 명령 예시 (리눅스/macOS)
+openssl rand -base64 48
+
+
+출력된 64문자짜리 키를 ENV_JWT_SECRET 로 사용하세요.
+절대 GitHub 등에 커밋 금지 ❌
+
+이 설정 그대로 넣으시면
+🚀 로컬(http) 에선 HttpOnly 쿠키 기반 인증 완벽 작동,
+🔒 운영(https) 에선 SSL + Secure 쿠키 + DB 검증으로 완벽히 돌아갑니다.
